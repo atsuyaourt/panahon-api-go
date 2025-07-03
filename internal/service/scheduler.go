@@ -25,7 +25,7 @@ func ScheduleJobs(ctx context.Context, store db.Store, conf util.Config, logger 
 			jobName   string
 		)
 
-		davisFactory := func(creds sensor.DavisAPICredentials, sleepDuration time.Duration) sensor.DavisSensor {
+		davisFactory := func(creds sensor.DavisAPICredentials, sleepDuration time.Duration) (sensor.DavisSensor, error) {
 			return sensor.NewDavis(creds, sleepDuration)
 		}
 		switch job.Name {

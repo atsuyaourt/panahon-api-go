@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	db "github.com/emiliogozo/panahon-api-go/internal/db/sqlc"
@@ -64,22 +65,43 @@ func InsertCurrentDavisObservations(ctx context.Context, davisFactory sensor.Dav
 		if err != nil {
 			continue
 		}
+		apiToken := getQueryParamInsensitive(parsedUrl, "apiToken")
+		if apiToken == "" {
+			logger.Warn().
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("missing API Token")
+		}
 		creds := sensor.DavisAPICredentials{
+			Type:     "v1",
 			User:     parsedUrl.Query().Get("user"),
 			Pass:     parsedUrl.Query().Get("pass"),
-			APIToken: parsedUrl.Query().Get("apiToken"),
+			APIToken: apiToken,
 		}
-		davis := davisFactory(creds, sleepDuration)
+		davis, err := davisFactory(creds, sleepDuration)
+		if err != nil {
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("invalid credentials")
+			continue
+		}
 		davisObs, err := davis.FetchLatest()
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("api error")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("api error")
 			continue
 		}
 		count++
 
 		err = storeDavisToCurrentObservation(stn.ID, davisObs[0], ctx, store)
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("cannot create new data")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("cannot create new data")
 			continue
 		}
 		countSuccess++
@@ -93,10 +115,16 @@ func InsertCurrentDavisObservations(ctx context.Context, davisFactory sensor.Dav
 			Status: pgtype.Text{String: statusStr, Valid: true},
 		})
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("update status error")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("update status error")
 		}
 	}
-	logger.Info().Str("service", serviceName).Str("success", fmt.Sprintf("%d/%d", countSuccess, count)).Msg("insert data successful")
+	logger.Info().
+		Str("service", serviceName).
+		Str("success", fmt.Sprintf("%d/%d", countSuccess, count)).
+		Msg("insert data successful")
 	return nil
 }
 
@@ -112,31 +140,47 @@ func InsertCurrentDavisObservationsV2(ctx context.Context, davisFactory sensor.D
 	for _, dStn := range stations {
 		stn, err := store.GetStation(ctx, dStn.StationID)
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("database error")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", dStn.StationID).
+				Msg("database error")
 			continue
 		}
 		if stn.Status.String == "INACTIVE" || !dStn.ApiKey.Valid || dStn.ApiKey.String == "" || !dStn.ApiSecret.Valid || dStn.ApiSecret.String == "" {
-			// logger.Info().Str("service", serviceName).Str("station", stn.Name).Msg("inactive or invalid api credentials")
 			continue
 		}
 
 		sleepDuration := time.Duration(util.RandomInt(1, 5)) * time.Second
 
 		creds := sensor.DavisAPICredentials{
+			Type:      "v2",
 			APIKey:    dStn.ApiKey.String,
 			APISecret: dStn.ApiSecret.String,
 		}
-		davis := davisFactory(creds, sleepDuration)
+		davis, err := davisFactory(creds, sleepDuration)
+		if err != nil {
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("invalid credentials")
+			continue
+		}
 		davisObs, err := davis.FetchLatest()
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("api error")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("api error")
 			continue
 		}
 		count++
 
 		err = storeDavis(stn.ID, davisObs[0], ctx, store)
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("cannot create new data")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("cannot create new data")
 			continue
 		}
 		countSuccess++
@@ -169,31 +213,47 @@ func InsertCurrentDavisObservationsDashboard(ctx context.Context, davisFactory s
 	for _, dStn := range stations {
 		stn, err := store.GetStation(ctx, dStn.StationID)
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("database error")
+			logger.Error().
+				Err(err).Str("service", serviceName).
+				Int64("station_id", dStn.StationID).
+				Msg("database error")
 			continue
 		}
 		if stn.Status.String == "INACTIVE" || !dStn.Uuid.Valid || dStn.Uuid.String == "" {
-			// logger.Info().Str("service", serviceName).Str("station", stn.Name).Msg("inactive or missing station uuid")
 			continue
 		}
 
 		sleepDuration := time.Duration(util.RandomInt(1, 3)) * time.Second
 
 		creds := sensor.DavisAPICredentials{
+			Type:    "dashboard",
 			StnUUID: dStn.Uuid.String,
 		}
-		davis := davisFactory(creds, sleepDuration)
+		davis, err := davisFactory(creds, sleepDuration)
+		if err != nil {
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("invalid credentials")
+			continue
+		}
 		davisObs, err := davis.FetchLatest()
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("api error")
+			logger.Error().
+				Err(err).Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("api error")
 			continue
 		}
 		count++
-		logger.Debug().Interface("davis", davisObs).Str("service", serviceName)
+		// logger.Debug().Interface("davis", davisObs).Str("service", serviceName)
 
 		err = storeDavis(stn.ID, davisObs[0], ctx, store)
 		if err != nil {
-			logger.Error().Err(err).Str("service", serviceName).Msg("cannot create new data")
+			logger.Error().Err(err).
+				Str("service", serviceName).
+				Int64("station_id", stn.ID).
+				Msg("cannot create new data")
 			continue
 		}
 		countSuccess++
@@ -210,7 +270,10 @@ func InsertCurrentDavisObservationsDashboard(ctx context.Context, davisFactory s
 		// 	logger.Error().Err(err).Str("service", serviceName).Msg("update status error")
 		// }
 	}
-	logger.Info().Str("service", serviceName).Str("success", fmt.Sprintf("%d/%d", countSuccess, count)).Msg("insert data successful")
+	logger.Info().
+		Str("service", serviceName).
+		Str("success", fmt.Sprintf("%d/%d", countSuccess, count)).
+		Msg("insert data successful")
 	return nil
 }
 
@@ -252,4 +315,14 @@ func storeDavisToCurrentObservation(stnID int64, o sensor.DavisCurrentObservatio
 		Timestamp:     o.Timestamp,
 	})
 	return err
+}
+
+func getQueryParamInsensitive(u *url.URL, key string) string {
+	params := u.Query()
+	for k, vals := range params {
+		if strings.EqualFold(k, key) && len(vals) > 0 {
+			return vals[0]
+		}
+	}
+	return ""
 }

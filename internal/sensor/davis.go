@@ -21,23 +21,19 @@ type DavisSensor interface {
 	FetchLatest() ([]DavisCurrentObservation, error)
 }
 
-type DavisFactory func(cred DavisAPICredentials, sleepDuration time.Duration) DavisSensor
+type DavisFactory func(cred DavisAPICredentials, sleepDuration time.Duration) (DavisSensor, error)
 
 type DavisAPICredentials struct {
-	User     string
-	Pass     string
-	APIToken string
-
-	APIKey    string
-	APISecret string
-
-	StnUUID string
+	Type                 string
+	User, Pass, APIToken string
+	APIKey, APISecret    string
+	StnUUID              string
 }
 
 type Davis struct {
-	api    DavisAPICredentials
-	client Fetcher
-	sleep  time.Duration
+	apiCredentials DavisAPICredentials
+	client         Fetcher
+	sleep          time.Duration
 }
 
 type DavisCurrentObservation struct {
@@ -63,51 +59,74 @@ type davisRawCurrentResponse interface {
 	ToDavisCurrentObservation() *DavisCurrentObservation
 }
 
-func NewDavis(apiCredentials DavisAPICredentials, sleep time.Duration) *Davis {
+func NewDavis(apiCredentials DavisAPICredentials, sleep time.Duration) (*Davis, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
+	if isValid := isCredentialValid(apiCredentials); !isValid {
+		return nil, fmt.Errorf("API credentials are invalid")
+	}
 	return &Davis{
-		api:    apiCredentials,
-		client: client,
-		sleep:  sleep,
+		apiCredentials: apiCredentials,
+		client:         client,
+		sleep:          sleep,
+	}, nil
+}
+
+func isCredentialValid(c DavisAPICredentials) bool {
+	switch c.Type {
+	case "dashboard":
+		return c.StnUUID != ""
+	case "v2":
+		return c.APIKey != "" && c.APISecret != ""
+	case "v1":
+		return c.User != "" && c.Pass != ""
+	default:
+		return false
 	}
 }
 
 func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
-	isV1 := d.api.User != "" && d.api.Pass != "" && d.api.APIToken != ""
-	isV2 := d.api.APIKey != "" && d.api.APISecret != ""
-	isDashboard := d.api.StnUUID != ""
-
-	if !isV1 && !isV2 && !isDashboard {
-		return nil, fmt.Errorf("API credentials are invalid")
-	}
-
 	var (
-		apiURL  string
-		qParams url.Values
+		apiURL     string
+		params     url.Values
+		rawParam   string
+		finalParam string
 	)
 
-	if isV2 {
+	switch d.apiCredentials.Type {
+	case "v2":
 		apiURL = DavisAPIV2URL + "/stations"
-		qParams = url.Values{
-			"api-key": {d.api.APIKey},
+		params = url.Values{
+			"api-key": {d.apiCredentials.APIKey},
 		}
-	} else if isV1 {
+	case "v1":
 		apiURL = DavisAPIV1URL
-		qParams = url.Values{
-			"user":     {d.api.User},
-			"pass":     {d.api.Pass},
-			"apiToken": {d.api.APIToken},
+		rawParam = "pass=" + d.apiCredentials.Pass
+		params = url.Values{
+			"user":     {d.apiCredentials.User},
+			"apiToken": {d.apiCredentials.APIToken},
 		}
-	} else {
-		apiURL = fmt.Sprintf("%s/%s", DavisDashboardURL, d.api.StnUUID)
-		qParams = url.Values{}
+	case "dashboard":
+		apiURL = fmt.Sprintf("%s/%s", DavisDashboardURL, d.apiCredentials.StnUUID)
 	}
 
 	baseURL, err := url.Parse(apiURL)
 	if err != nil {
 		return nil, err
 	}
-	baseURL.RawQuery = qParams.Encode()
+	encParam := params.Encode()
+
+	switch {
+	case encParam != "" && rawParam != "":
+		finalParam = encParam + "&" + rawParam
+	case encParam != "":
+		finalParam = encParam
+	case rawParam != "":
+		finalParam = rawParam
+	default:
+		finalParam = ""
+	}
+
+	baseURL.RawQuery = finalParam
 	encodedURL := baseURL.String()
 
 	req, err := http.NewRequest("GET", encodedURL, nil)
@@ -117,8 +136,8 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 
 	req.Header.Set("User-Agent", HTTPUserAgent)
 
-	if isV2 {
-		req.Header.Set("X-Api-Secret", d.api.APISecret)
+	if d.apiCredentials.Type == "v2" {
+		req.Header.Set("X-Api-Secret", d.apiCredentials.APISecret)
 	}
 
 	time.Sleep(d.sleep)
@@ -129,7 +148,8 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 	}
 	defer res.Body.Close()
 
-	if isV2 {
+	switch d.apiCredentials.Type {
+	case "v2":
 		var rawStations davisRawStationsResponseV2
 		err = json.NewDecoder(res.Body).Decode(&rawStations)
 		if err != nil {
@@ -139,15 +159,15 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 		obsSlice := make([]DavisCurrentObservation, 0)
 		for _, rawStn := range rawStations.Stations {
 			apiURL = fmt.Sprintf("%s/current/%d", DavisAPIV2URL, rawStn.StationID)
-			qParams = url.Values{
-				"api-key": {d.api.APIKey},
+			params = url.Values{
+				"api-key": {d.apiCredentials.APIKey},
 			}
 
 			baseURL, err := url.Parse(apiURL)
 			if err != nil {
 				return nil, err
 			}
-			baseURL.RawQuery = qParams.Encode()
+			baseURL.RawQuery = params.Encode()
 			encodedURL := baseURL.String()
 
 			req, err := http.NewRequest("GET", encodedURL, nil)
@@ -156,7 +176,7 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 			}
 
 			req.Header.Set("User-Agent", HTTPUserAgent)
-			req.Header.Set("X-Api-Secret", d.api.APISecret)
+			req.Header.Set("X-Api-Secret", d.apiCredentials.APISecret)
 
 			time.Sleep(d.sleep)
 
@@ -178,7 +198,7 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 			}
 		}
 		return obsSlice, nil
-	} else if isV1 {
+	case "v1":
 		var rawObs davisRawCurrentResponseV1
 		err = json.NewDecoder(res.Body).Decode(&rawObs)
 		if err != nil {

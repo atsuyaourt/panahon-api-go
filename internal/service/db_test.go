@@ -115,8 +115,8 @@ func TestInsertCurrentDavisObservations(t *testing.T) {
 			davisSensor := mocksensor.NewMockDavisSensor(t)
 			tc.buildStubs(davisSensor, store)
 
-			sensorFactory := func(cred sensor.DavisAPICredentials, sleepDuration time.Duration) sensor.DavisSensor {
-				return davisSensor
+			sensorFactory := func(cred sensor.DavisAPICredentials, sleepDuration time.Duration) (sensor.DavisSensor, error) {
+				return davisSensor, nil
 			}
 
 			config := util.Config{
@@ -248,8 +248,8 @@ func TestInsertCurrentDavisObservationsV2(t *testing.T) {
 			davisSensor := mocksensor.NewMockDavisSensor(t)
 			tc.buildStubs(davisSensor, store)
 
-			sensorFactory := func(cred sensor.DavisAPICredentials, sleepDuration time.Duration) sensor.DavisSensor {
-				return davisSensor
+			sensorFactory := func(cred sensor.DavisAPICredentials, sleepDuration time.Duration) (sensor.DavisSensor, error) {
+				return davisSensor, nil
 			}
 
 			config := util.Config{
@@ -371,8 +371,8 @@ func TestInsertCurrentDavisObservationsDashboard(t *testing.T) {
 			davisSensor := mocksensor.NewMockDavisSensor(t)
 			tc.buildStubs(davisSensor, store)
 
-			sensorFactory := func(cred sensor.DavisAPICredentials, sleepDuration time.Duration) sensor.DavisSensor {
-				return davisSensor
+			sensorFactory := func(cred sensor.DavisAPICredentials, sleepDuration time.Duration) (sensor.DavisSensor, error) {
+				return davisSensor, nil
 			}
 
 			config := util.Config{

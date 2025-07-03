@@ -20,103 +20,106 @@ func TestNewDavis(t *testing.T) {
 	testCases := []struct {
 		name           string
 		apiCredentials DavisAPICredentials
-		checkInstance  func(sensor *Davis)
+		checkInstance  func(sensor *Davis, err error)
 	}{
 		{
 			name: "Default",
 			apiCredentials: DavisAPICredentials{
+				Type:     "v1",
 				User:     "testdavisUser",
 				Pass:     "testdav!sPAss",
 				APIToken: "123DAV15890456ZXCARSLUY",
 			},
-			checkInstance: func(sensor *Davis) {
+			checkInstance: func(sensor *Davis, err error) {
 				require.NotNil(t, sensor)
-				require.Equal(t, "testdavisUser", sensor.api.User)
-				require.Equal(t, "testdav!sPAss", sensor.api.Pass)
-				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.api.APIToken)
+				require.NoError(t, err)
+				require.Equal(t, "testdavisUser", sensor.apiCredentials.User)
+				require.Equal(t, "testdav!sPAss", sensor.apiCredentials.Pass)
+				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.apiCredentials.APIToken)
 			},
 		},
 		{
 			name: "V2",
 			apiCredentials: DavisAPICredentials{
+				Type:      "v2",
 				APIKey:    "123DAV15890456ZXCARSLUY",
 				APISecret: "xxxx123DAV15890456ZXCARSLUYxxxx",
 			},
-			checkInstance: func(sensor *Davis) {
+			checkInstance: func(sensor *Davis, err error) {
 				require.NotNil(t, sensor)
-				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.api.APIKey)
-				require.Equal(t, "xxxx123DAV15890456ZXCARSLUYxxxx", sensor.api.APISecret)
+				require.NoError(t, err)
+				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.apiCredentials.APIKey)
+				require.Equal(t, "xxxx123DAV15890456ZXCARSLUYxxxx", sensor.apiCredentials.APISecret)
 			},
 		},
 		{
 			name: "Dashboard",
 			apiCredentials: DavisAPICredentials{
+				Type:    "dashboard",
 				StnUUID: "a72efc82c04d43b6801d7d4de46aa79a",
 			},
-			checkInstance: func(sensor *Davis) {
+			checkInstance: func(sensor *Davis, err error) {
 				require.NotNil(t, sensor)
-				require.Equal(t, "a72efc82c04d43b6801d7d4de46aa79a", sensor.api.StnUUID)
+				require.NoError(t, err)
+				require.Equal(t, "a72efc82c04d43b6801d7d4de46aa79a", sensor.apiCredentials.StnUUID)
 			},
 		},
 		{
 			name: "NoUser",
 			apiCredentials: DavisAPICredentials{
+				Type:     "v1",
 				Pass:     "testdav!sPAss",
 				APIToken: "123DAV15890456ZXCARSLUY",
 			},
-			checkInstance: func(sensor *Davis) {
-				require.NotNil(t, sensor)
-				require.Empty(t, sensor.api.User)
-				require.Equal(t, "testdav!sPAss", sensor.api.Pass)
-				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.api.APIToken)
+			checkInstance: func(sensor *Davis, err error) {
+				require.Nil(t, sensor)
+				require.Error(t, err)
 			},
 		},
 		{
 			name: "NoPass",
 			apiCredentials: DavisAPICredentials{
+				Type:     "v1",
 				User:     "testdavisUser",
 				APIToken: "123DAV15890456ZXCARSLUY",
 			},
-			checkInstance: func(sensor *Davis) {
-				require.NotNil(t, sensor)
-				require.Equal(t, "testdavisUser", sensor.api.User)
-				require.Empty(t, sensor.api.Pass)
-				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.api.APIToken)
+			checkInstance: func(sensor *Davis, err error) {
+				require.Nil(t, sensor)
+				require.Error(t, err)
 			},
 		},
 		{
 			name: "NoAPIToken",
 			apiCredentials: DavisAPICredentials{
+				Type: "v1",
 				User: "testdavisUser",
 				Pass: "testdav!sPAss",
 			},
-			checkInstance: func(sensor *Davis) {
-				require.NotNil(t, sensor)
-				require.Equal(t, "testdavisUser", sensor.api.User)
-				require.Equal(t, "testdav!sPAss", sensor.api.Pass)
-				require.Empty(t, sensor.api.APIToken)
+			checkInstance: func(sensor *Davis, err error) {
+				require.Nil(t, sensor)
+				require.Error(t, err)
 			},
 		},
 		{
 			name: "NoAPIKey",
 			apiCredentials: DavisAPICredentials{
+				Type:      "v2",
 				APISecret: "xxxx123DAV15890456ZXCARSLUYxxxx",
 			},
-			checkInstance: func(sensor *Davis) {
-				require.NotNil(t, sensor)
-				require.Empty(t, sensor.api.APIKey)
-				require.Equal(t, "xxxx123DAV15890456ZXCARSLUYxxxx", sensor.api.APISecret)
+			checkInstance: func(sensor *Davis, err error) {
+				require.Nil(t, sensor)
+				require.Error(t, err)
 			},
 		},
 		{
 			name: "NoAPISecret",
 			apiCredentials: DavisAPICredentials{
+				Type:   "v2",
 				APIKey: "123DAV15890456ZXCARSLUY",
 			},
-			checkInstance: func(sensor *Davis) {
-				require.NotNil(t, sensor)
-				require.Equal(t, "123DAV15890456ZXCARSLUY", sensor.api.APIKey)
-				require.Empty(t, sensor.api.APISecret)
+			checkInstance: func(sensor *Davis, err error) {
+				require.Nil(t, sensor)
+				require.Error(t, err)
 			},
 		},
 	}
@@ -124,22 +127,23 @@ func TestNewDavis(t *testing.T) {
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
-			testSensor := NewDavis(tc.apiCredentials, 10)
-			tc.checkInstance(testSensor)
+			testSensor, err := NewDavis(tc.apiCredentials, 10)
+			tc.checkInstance(testSensor, err)
 		})
 	}
 }
 
 func TestFetchLatest(t *testing.T) {
 	testCases := []struct {
-		name          string
-		api           DavisAPICredentials
-		builStubs     func(client *mocksensor.MockFetcher) []davisRawCurrentResponse
-		checkResponse func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error)
+		name           string
+		apiCredentials DavisAPICredentials
+		builStubs      func(client *mocksensor.MockFetcher) []davisRawCurrentResponse
+		checkResponse  func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error)
 	}{
 		{
 			name: "Default",
-			api: DavisAPICredentials{
+			apiCredentials: DavisAPICredentials{
+				Type:     "v1",
 				User:     "testuser001",
 				Pass:     "secrEtp@s$",
 				APIToken: "qwfparst1234ar655",
@@ -161,7 +165,8 @@ func TestFetchLatest(t *testing.T) {
 		},
 		{
 			name: "V2",
-			api: DavisAPICredentials{
+			apiCredentials: DavisAPICredentials{
+				Type:      "v2",
 				APIKey:    "123DAV15890456ZXCARSLUY",
 				APISecret: "xxxx123DAV15890456ZXCARSLUYxxxx",
 			},
@@ -204,7 +209,8 @@ func TestFetchLatest(t *testing.T) {
 		},
 		{
 			name: "Dashboard",
-			api: DavisAPICredentials{
+			apiCredentials: DavisAPICredentials{
+				Type:    "dashboard",
 				StnUUID: "a72efc82c04d43b6801d7d4de46aa79a",
 			},
 			builStubs: func(client *mocksensor.MockFetcher) []davisRawCurrentResponse {
@@ -222,79 +228,6 @@ func TestFetchLatest(t *testing.T) {
 				requireDavisEqual(t, rawObsSlice, obsSlice)
 			},
 		},
-		{
-			name: "MissingUserParam",
-			api: DavisAPICredentials{
-				Pass:     "secrEtp@s$",
-				APIToken: "qwfparst1234ar655",
-			},
-			builStubs: func(client *mocksensor.MockFetcher) []davisRawCurrentResponse {
-				return []davisRawCurrentResponse{}
-			},
-			checkResponse: func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error) {
-				client.AssertExpectations(t)
-				assert.Error(t, err)
-				assert.Empty(t, obsSlice)
-			},
-		},
-		{
-			name: "MissingPassParam",
-			api: DavisAPICredentials{
-				User:     "testuser001",
-				APIToken: "qwfparst1234ar655",
-			},
-			builStubs: func(client *mocksensor.MockFetcher) []davisRawCurrentResponse {
-				return []davisRawCurrentResponse{}
-			},
-			checkResponse: func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error) {
-				client.AssertExpectations(t)
-				assert.Error(t, err)
-				assert.Empty(t, obsSlice)
-			},
-		},
-		{
-			name: "MissingApiToken",
-			api: DavisAPICredentials{
-				User: "testuser001",
-				Pass: "secrEtp@s$",
-			},
-			builStubs: func(client *mocksensor.MockFetcher) []davisRawCurrentResponse {
-				return []davisRawCurrentResponse{}
-			},
-			checkResponse: func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error) {
-				client.AssertExpectations(t)
-				assert.Error(t, err)
-				assert.Empty(t, obsSlice)
-			},
-		},
-		{
-			name: "MissingApiSecret",
-			api: DavisAPICredentials{
-				APIKey: "123DAV15890456ZXCARSLUY",
-			},
-			builStubs: func(client *mocksensor.MockFetcher) []davisRawCurrentResponse {
-				return []davisRawCurrentResponse{}
-			},
-			checkResponse: func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error) {
-				client.AssertExpectations(t)
-				assert.Error(t, err)
-				assert.Empty(t, obsSlice)
-			},
-		},
-		{
-			name: "MissingApiKey",
-			api: DavisAPICredentials{
-				APISecret: "xxxx123DAV15890456ZXCARSLUYxxxx",
-			},
-			builStubs: func(client *mocksensor.MockFetcher) []davisRawCurrentResponse {
-				return []davisRawCurrentResponse{}
-			},
-			checkResponse: func(client *mocksensor.MockFetcher, rawObsSlice []davisRawCurrentResponse, obsSlice []DavisCurrentObservation, err error) {
-				client.AssertExpectations(t)
-				assert.Error(t, err)
-				assert.Empty(t, obsSlice)
-			},
-		},
 	}
 
 	for i := range testCases {
@@ -302,9 +235,9 @@ func TestFetchLatest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			testFetcher := mocksensor.NewMockFetcher(t)
 			testSensor := &Davis{
-				api:    tc.api,
-				client: testFetcher,
-				sleep:  0,
+				apiCredentials: tc.apiCredentials,
+				client:         testFetcher,
+				sleep:          0,
 			}
 
 			rawObsSlice := tc.builStubs(testFetcher)
@@ -329,23 +262,23 @@ func requireDavisEqual(t *testing.T, rawObsSlice []davisRawCurrentResponse, obsS
 }
 
 func requireDavisEqualV1(t *testing.T, rawObs davisRawCurrentResponseV1, obs DavisCurrentObservation) {
-	if rawObs.PressureMb != nil {
-		require.InDelta(t, *rawObs.PressureMb, obs.Pres.Float32, 0.001)
+	if rawObs.PressureMb.Valid {
+		require.InDelta(t, rawObs.PressureMb.Value, obs.Pres.Float32, 0.001)
 	}
-	if rawObs.Rh != nil {
-		require.InDelta(t, *rawObs.Rh, obs.Rh.Float32, 0.001)
+	if rawObs.Rh.Valid {
+		require.InDelta(t, rawObs.Rh.Value, obs.Rh.Float32, 0.001)
 	}
-	if rawObs.TempC != nil {
-		require.InDelta(t, *rawObs.TempC, obs.Temp.Float32, 0.001)
+	if rawObs.TempC.Valid {
+		require.InDelta(t, rawObs.TempC.Value, obs.Temp.Float32, 0.001)
 	}
-	if rawObs.WindDeg != nil {
-		require.InDelta(t, *rawObs.WindDeg, obs.Wdir.Float32, 0.001)
+	if rawObs.WindDeg.Valid {
+		require.InDelta(t, rawObs.WindDeg.Value, obs.Wdir.Float32, 0.001)
 	}
-	if rawObs.WindMPH != nil {
-		require.InDelta(t, *rawObs.WindMPH*0.44704, obs.Wspd.Float32, 0.001)
+	if rawObs.WindMPH.Valid {
+		require.InDelta(t, rawObs.WindMPH.Value*0.44704, obs.Wspd.Float32, 0.001)
 	}
-	if rawObs.Obs.WindDayHighMPH != nil {
-		require.InDelta(t, *rawObs.Obs.WindDayHighMPH*0.44704, obs.Wspdx.Float32, 0.001)
+	if rawObs.Obs.WindDayHighMPH.Valid {
+		require.InDelta(t, rawObs.Obs.WindDayHighMPH.Value*0.44704, obs.Wspdx.Float32, 0.001)
 	}
 	require.Equal(t, rawObs.Obs.TempDayHighTime, datetimeToTimeStr(obs.TxTimestamp.Time))
 	require.Equal(t, rawObs.Obs.TempDayLowTime, datetimeToTimeStr(obs.TnTimestamp.Time))
@@ -356,7 +289,7 @@ func requireDavisEqualV1(t *testing.T, rawObs davisRawCurrentResponseV1, obs Dav
 func requireDavisEqualV2(t *testing.T, rawObs davisRawCurrentResponseV2, obs DavisCurrentObservation) {
 	rawObsData := rawObs.Sensors[0].Data[0]
 	if rawObsData.Bar != nil {
-		require.InDelta(t, *rawObsData.Bar, obs.Pres.Float32, 0.001)
+		require.InDelta(t, util.InHgToMbar(*rawObsData.Bar), obs.Pres.Float32, 0.001)
 	}
 	if rawObsData.HumOut != nil {
 		require.InDelta(t, *rawObsData.HumOut, obs.Rh.Float32, 0.001)
@@ -408,23 +341,23 @@ func datetimeToTimeStr(dt time.Time) string {
 func randomDavisRawResponseV1() davisRawCurrentResponseV1 {
 	return davisRawCurrentResponseV1{
 		Location:   util.RandomString(24),
-		Lat:        util.RandomFloatPtr[float32](4.0, 22.0),
-		Lon:        util.RandomFloatPtr[float32](114.0, 121.0),
-		PressureMb: util.RandomFloatPtr[float32](990.0, 1100.),
-		Rh:         util.RandomFloatPtr[float32](0.0, 100.0),
-		TempC:      util.RandomFloatPtr[float32](25.0, 33.0),
-		TdC:        util.RandomFloatPtr[float32](25.0, 33.0),
-		WindDeg:    util.RandomFloatPtr[float32](0, 360),
-		WindMPH:    util.RandomFloatPtr[float32](0.0, 10.0),
-		HeatIndexC: util.RandomFloatPtr[float32](30.0, 50.0),
+		Lat:        util.RandomJSONFloat4(4.0, 22.0),
+		Lon:        util.RandomJSONFloat4(114.0, 121.0),
+		PressureMb: util.RandomJSONFloat4(990.0, 1100.),
+		Rh:         util.RandomJSONFloat4(0.0, 100.0),
+		TempC:      util.RandomJSONFloat4(25.0, 33.0),
+		TdC:        util.RandomJSONFloat4(25.0, 33.0),
+		WindDeg:    util.RandomJSONFloat4(0, 360),
+		WindMPH:    util.RandomJSONFloat4(0.0, 10.0),
+		HeatIndexC: util.RandomJSONFloat4(30.0, 50.0),
 		Obs: davisRawCurrentObservationV1{
-			RRInPerHr:       util.RandomFloatPtr[float32](0.0, 5.0),
-			RainDayIn:       util.RandomFloatPtr[float32](0.0, 100.0),
-			Srad:            util.RandomFloatPtr[float32](0, 400),
-			UVIndex:         util.RandomFloatPtr[float32](0.0, 1.0),
-			TempDayHighF:    util.RandomFloatPtr[float32](77.0, 104.0),
-			TempDayLowF:     util.RandomFloatPtr[float32](60.0, 104.0),
-			WindDayHighMPH:  util.RandomFloatPtr[float32](0.0, 20.0),
+			RRInPerHr:       util.RandomJSONFloat4(0.0, 5.0),
+			RainDayIn:       util.RandomJSONFloat4(0.0, 100.0),
+			Srad:            util.RandomJSONFloat4(0, 400),
+			UVIndex:         util.RandomJSONFloat4(0.0, 1.0),
+			TempDayHighF:    util.RandomJSONFloat4(77.0, 104.0),
+			TempDayLowF:     util.RandomJSONFloat4(60.0, 104.0),
+			WindDayHighMPH:  util.RandomJSONFloat4(0.0, 20.0),
 			TempDayHighTime: randomTimeString(),
 			TempDayLowTime:  randomTimeString(),
 			WindDayHighTime: randomTimeString(),
@@ -434,6 +367,7 @@ func randomDavisRawResponseV1() davisRawCurrentResponseV1 {
 }
 
 func randomDavisRawResponseV2() davisRawCurrentResponseV2 {
+	pres := util.MbarToInHg(util.RandomFloat[float32](990.0, 1100.0))
 	return davisRawCurrentResponseV2{
 		StationID: util.RandomInt(100000, 999999),
 		Sensors: []davisRawCurrentSensorResponseV2{
@@ -441,7 +375,7 @@ func randomDavisRawResponseV2() davisRawCurrentResponseV2 {
 				LSID: util.RandomInt(100000, 999999),
 				Data: []davisRawCurrentDataResponseV2{
 					{
-						Bar:     util.RandomFloatPtr[float32](990.0, 1100.),
+						Bar:     &pres,
 						TempOut: util.RandomFloatPtr[float32](25.0, 33.0),
 						HumOut:  util.RandomFloatPtr[float32](0.0, 100.0),
 					},

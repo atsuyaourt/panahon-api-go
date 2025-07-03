@@ -9,46 +9,46 @@ import (
 
 type davisRawCurrentResponseV1 struct {
 	Location   string                       `json:"location"`
-	Lat        *float32                     `json:"latitude"`
-	Lon        *float32                     `json:"longitude"`
+	Lat        util.JSONFloat4              `json:"latitude"`
+	Lon        util.JSONFloat4              `json:"longitude"`
 	Time       string                       `json:"observation_time_rfc822"`
-	PressureMb *float32                     `json:"pressure_mb"`
-	Rh         *float32                     `json:"relative_humidity"`
-	TempC      *float32                     `json:"temp_c"`
-	TdC        *float32                     `json:"dewpoint_c"`
-	WindDeg    *float32                     `json:"wind_degrees"`
-	WindMPH    *float32                     `json:"wind_mph"`
-	HeatIndexC *float32                     `json:"heat_index_c"`
+	PressureMb util.JSONFloat4              `json:"pressure_mb"`
+	Rh         util.JSONFloat4              `json:"relative_humidity"`
+	TempC      util.JSONFloat4              `json:"temp_c"`
+	TdC        util.JSONFloat4              `json:"dewpoint_c"`
+	WindDeg    util.JSONFloat4              `json:"wind_degrees"`
+	WindMPH    util.JSONFloat4              `json:"wind_mph"`
+	HeatIndexC util.JSONFloat4              `json:"heat_index_c"`
 	Obs        davisRawCurrentObservationV1 `json:"davis_current_observation"`
 }
 
 type davisRawCurrentObservationV1 struct {
-	RRInPerHr       *float32 `json:"rain_rate_in_per_hr"`
-	RainDayIn       *float32 `json:"rain_day_in"`
-	Srad            *float32 `json:"solar_radiation"`
-	UVIndex         *float32 `json:"uv_index"`
-	TempDayHighF    *float32 `json:"temp_day_high_f"`
-	TempDayLowF     *float32 `json:"temp_day_low_f"`
-	WindDayHighMPH  *float32 `json:"wind_day_high_mph"`
-	TempDayHighTime string   `json:"temp_day_high_time"`
-	TempDayLowTime  string   `json:"temp_day_low_time"`
-	WindDayHighTime string   `json:"wind_day_high_time"`
+	RRInPerHr       util.JSONFloat4 `json:"rain_rate_in_per_hr"`
+	RainDayIn       util.JSONFloat4 `json:"rain_day_in"`
+	Srad            util.JSONFloat4 `json:"solar_radiation"`
+	UVIndex         util.JSONFloat4 `json:"uv_index"`
+	TempDayHighF    util.JSONFloat4 `json:"temp_day_high_f"`
+	TempDayLowF     util.JSONFloat4 `json:"temp_day_low_f"`
+	WindDayHighMPH  util.JSONFloat4 `json:"wind_day_high_mph"`
+	TempDayHighTime string          `json:"temp_day_high_time"`
+	TempDayLowTime  string          `json:"temp_day_low_time"`
+	WindDayHighTime string          `json:"wind_day_high_time"`
 }
 
 func (r davisRawCurrentResponseV1) ToDavisCurrentObservation() *DavisCurrentObservation {
 	obs := DavisCurrentObservation{
-		Rr:            util.ToFloat4(r.Obs.RRInPerHr),
-		RainAccum:     util.ToFloat4(r.Obs.RainDayIn),
-		Temp:          util.ToFloat4(r.TempC),
-		Rh:            util.ToFloat4(r.Rh),
-		Wdir:          util.ToFloat4(r.WindDeg),
-		Wspd:          util.ToFloat4(r.WindMPH),
-		Srad:          util.ToFloat4(r.Obs.Srad),
-		Pres:          util.ToFloat4(r.PressureMb),
-		Tx:            util.ToFloat4(r.Obs.TempDayHighF),
-		Tn:            util.ToFloat4(r.Obs.TempDayLowF),
-		Wspdx:         util.ToFloat4(r.Obs.WindDayHighMPH),
-		Hi:            util.ToFloat4(r.HeatIndexC),
+		Rr:            r.Obs.RRInPerHr.ToFloat4(),
+		RainAccum:     r.Obs.RainDayIn.ToFloat4(),
+		Temp:          r.TempC.ToFloat4(),
+		Rh:            r.Rh.ToFloat4(),
+		Wdir:          r.WindDeg.ToFloat4(),
+		Wspd:          r.WindMPH.ToFloat4(),
+		Srad:          r.Obs.Srad.ToFloat4(),
+		Pres:          r.PressureMb.ToFloat4(),
+		Tx:            r.Obs.TempDayHighF.ToFloat4(),
+		Tn:            r.Obs.TempDayLowF.ToFloat4(),
+		Wspdx:         r.Obs.WindDayHighMPH.ToFloat4(),
+		Hi:            r.HeatIndexC.ToFloat4(),
 		TxTimestamp:   pgtype.Timestamptz{Time: time.Time{}, Valid: true},
 		TnTimestamp:   pgtype.Timestamptz{Time: time.Time{}, Valid: true},
 		GustTimestamp: pgtype.Timestamptz{Time: time.Time{}, Valid: true},
@@ -82,7 +82,7 @@ func (r davisRawCurrentResponseV1) ToDavisCurrentObservation() *DavisCurrentObse
 		}
 	}
 
-	layout := "Mon, 02 Jan 2006 15:04:05 -0700"
+	layout := "Mon, 2 Jan 2006 15:04:05 -0700"
 	if dt, err := time.Parse(layout, r.Time); err == nil {
 		obs.Timestamp = pgtype.Timestamptz{Time: dt, Valid: true}
 	}
