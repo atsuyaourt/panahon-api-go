@@ -490,6 +490,32 @@ func newLatestObservationResponse(data any) latestObservationRes {
 				Timestamp:     d.ObservationsCurrent.Timestamp,
 			},
 		}
+	case db.GetNearestLatestStationObservationRow:
+		return latestObservationRes{
+			ID:        d.ID,
+			Name:      d.Name,
+			Lat:       util.Float4{Float4: d.Lat},
+			Lon:       util.Float4{Float4: d.Lon},
+			Elevation: util.Float4{Float4: d.Elevation},
+			Address:   d.Address,
+			Obs: latestObsRes{
+				Rain:          util.Float4{Float4: d.Rain},
+				Temp:          util.Float4{Float4: d.Temp},
+				Rh:            util.Float4{Float4: d.Rh},
+				Wdir:          util.Float4{Float4: d.Wdir},
+				Wspd:          util.Float4{Float4: d.Wspd},
+				Srad:          util.Float4{Float4: d.Srad},
+				Mslp:          util.Float4{Float4: d.Mslp},
+				Tn:            util.Float4{Float4: d.Tn},
+				Tx:            util.Float4{Float4: d.Tx},
+				Gust:          util.Float4{Float4: d.Gust},
+				RainAccum:     util.Float4{Float4: d.RainAccum},
+				TnTimestamp:   d.TnTimestamp,
+				TxTimestamp:   d.TxTimestamp,
+				GustTimestamp: d.GustTimestamp,
+				Timestamp:     d.Timestamp,
+			},
+		}
 	default:
 		return latestObservationRes{}
 	}
@@ -600,7 +626,7 @@ func (h *DefaultHandler) GetNearestLatestStationObservation(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, newLatestObservationResponse(db.GetLatestStationObservationRow(obs)))
+	ctx.JSON(http.StatusOK, newLatestObservationResponse(obs))
 }
 
 func convertMOObservationToObservation(mo db.ObservationsMoObservation) db.ObservationsObservation {

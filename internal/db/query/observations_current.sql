@@ -29,20 +29,30 @@ ORDER BY obs.timestamp DESC
 LIMIT 1;
 
 -- name: GetNearestLatestStationObservation :one
-WITH NearestStation AS (
+WITH RankedRows AS (
   SELECT
-	id, name, lat, lon, elevation, address
-  FROM observations_station
-  ORDER BY geom <-> ST_Point(@lon::real, @lat::real, 4326)
-  LIMIT 1
+    stn.id, stn.name, stn.lat, stn.lon, stn.elevation, stn.address,
+    obs.rain, obs."temp", obs.rh,
+    obs.wdir, obs.wspd, obs.srad, obs.mslp,
+    obs.tn, obs.tx, obs.gust, obs.rain_accum,
+    obs.tn_timestamp, obs.tx_timestamp, obs.gust_timestamp, obs."timestamp",
+    ROW_NUMBER() OVER (PARTITION BY stn.id ORDER BY obs.timestamp DESC) AS rn,
+    ST_Distance(
+      stn.geom::geography,
+      ST_SetSRID(ST_MakePoint(@lon::real, @lat::real), 4326)::geography
+    ) AS distance
+  FROM observations_station stn
+    JOIN observations_current obs ON stn.id = obs.station_id
+  WHERE obs.timestamp > NOW() - INTERVAL '1 hour'
 )
 SELECT
-  stn.id, stn.name, stn.lat, stn.lon, stn.elevation, stn.address,
-  sqlc.embed(obs)
-FROM NearestStation stn 
-  JOIN observations_current obs 
-  ON stn.id = obs.station_id
-ORDER BY obs.timestamp DESC
+  id, name, lat, lon, elevation, address,
+  rain, "temp", rh, wdir, wspd, srad, mslp,
+  tn, tx, gust, rain_accum,
+  tn_timestamp, tx_timestamp, gust_timestamp, "timestamp"
+FROM RankedRows
+WHERE rn = 1
+ORDER BY distance
 LIMIT 1;
 
 -- name: InsertCurrentObservations :many

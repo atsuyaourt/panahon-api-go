@@ -138,20 +138,30 @@ func (q *Queries) GetLatestStationObservation(ctx context.Context, id int64) (Ge
 }
 
 const getNearestLatestStationObservation = `-- name: GetNearestLatestStationObservation :one
-WITH NearestStation AS (
+WITH RankedRows AS (
   SELECT
-	id, name, lat, lon, elevation, address
-  FROM observations_station
-  ORDER BY geom <-> ST_Point($1::real, $2::real, 4326)
-  LIMIT 1
+    stn.id, stn.name, stn.lat, stn.lon, stn.elevation, stn.address,
+    obs.rain, obs."temp", obs.rh,
+    obs.wdir, obs.wspd, obs.srad, obs.mslp,
+    obs.tn, obs.tx, obs.gust, obs.rain_accum,
+    obs.tn_timestamp, obs.tx_timestamp, obs.gust_timestamp, obs."timestamp",
+    ROW_NUMBER() OVER (PARTITION BY stn.id ORDER BY obs.timestamp DESC) AS rn,
+    ST_Distance(
+      stn.geom::geography,
+      ST_SetSRID(ST_MakePoint($1::real, $2::real), 4326)::geography
+    ) AS distance
+  FROM observations_station stn
+    JOIN observations_current obs ON stn.id = obs.station_id
+  WHERE obs.timestamp > NOW() - INTERVAL '1 hour'
 )
 SELECT
-  stn.id, stn.name, stn.lat, stn.lon, stn.elevation, stn.address,
-  obs.id, obs.station_id, obs.rain, obs.temp, obs.rh, obs.wdir, obs.wspd, obs.srad, obs.mslp, obs.tn, obs.tx, obs.gust, obs.rain_accum, obs.timestamp, obs.tn_timestamp, obs.tx_timestamp, obs.gust_timestamp
-FROM NearestStation stn 
-  JOIN observations_current obs 
-  ON stn.id = obs.station_id
-ORDER BY obs.timestamp DESC
+  id, name, lat, lon, elevation, address,
+  rain, "temp", rh, wdir, wspd, srad, mslp,
+  tn, tx, gust, rain_accum,
+  tn_timestamp, tx_timestamp, gust_timestamp, "timestamp"
+FROM RankedRows
+WHERE rn = 1
+ORDER BY distance
 LIMIT 1
 `
 
@@ -161,13 +171,27 @@ type GetNearestLatestStationObservationParams struct {
 }
 
 type GetNearestLatestStationObservationRow struct {
-	ID                  int64               `json:"id"`
-	Name                string              `json:"name"`
-	Lat                 pgtype.Float4       `json:"lat"`
-	Lon                 pgtype.Float4       `json:"lon"`
-	Elevation           pgtype.Float4       `json:"elevation"`
-	Address             pgtype.Text         `json:"address"`
-	ObservationsCurrent ObservationsCurrent `json:"observations_current"`
+	ID            int64              `json:"id"`
+	Name          string             `json:"name"`
+	Lat           pgtype.Float4      `json:"lat"`
+	Lon           pgtype.Float4      `json:"lon"`
+	Elevation     pgtype.Float4      `json:"elevation"`
+	Address       pgtype.Text        `json:"address"`
+	Rain          pgtype.Float4      `json:"rain"`
+	Temp          pgtype.Float4      `json:"temp"`
+	Rh            pgtype.Float4      `json:"rh"`
+	Wdir          pgtype.Float4      `json:"wdir"`
+	Wspd          pgtype.Float4      `json:"wspd"`
+	Srad          pgtype.Float4      `json:"srad"`
+	Mslp          pgtype.Float4      `json:"mslp"`
+	Tn            pgtype.Float4      `json:"tn"`
+	Tx            pgtype.Float4      `json:"tx"`
+	Gust          pgtype.Float4      `json:"gust"`
+	RainAccum     pgtype.Float4      `json:"rain_accum"`
+	TnTimestamp   pgtype.Timestamptz `json:"tn_timestamp"`
+	TxTimestamp   pgtype.Timestamptz `json:"tx_timestamp"`
+	GustTimestamp pgtype.Timestamptz `json:"gust_timestamp"`
+	Timestamp     pgtype.Timestamptz `json:"timestamp"`
 }
 
 func (q *Queries) GetNearestLatestStationObservation(ctx context.Context, arg GetNearestLatestStationObservationParams) (GetNearestLatestStationObservationRow, error) {
@@ -180,23 +204,21 @@ func (q *Queries) GetNearestLatestStationObservation(ctx context.Context, arg Ge
 		&i.Lon,
 		&i.Elevation,
 		&i.Address,
-		&i.ObservationsCurrent.ID,
-		&i.ObservationsCurrent.StationID,
-		&i.ObservationsCurrent.Rain,
-		&i.ObservationsCurrent.Temp,
-		&i.ObservationsCurrent.Rh,
-		&i.ObservationsCurrent.Wdir,
-		&i.ObservationsCurrent.Wspd,
-		&i.ObservationsCurrent.Srad,
-		&i.ObservationsCurrent.Mslp,
-		&i.ObservationsCurrent.Tn,
-		&i.ObservationsCurrent.Tx,
-		&i.ObservationsCurrent.Gust,
-		&i.ObservationsCurrent.RainAccum,
-		&i.ObservationsCurrent.Timestamp,
-		&i.ObservationsCurrent.TnTimestamp,
-		&i.ObservationsCurrent.TxTimestamp,
-		&i.ObservationsCurrent.GustTimestamp,
+		&i.Rain,
+		&i.Temp,
+		&i.Rh,
+		&i.Wdir,
+		&i.Wspd,
+		&i.Srad,
+		&i.Mslp,
+		&i.Tn,
+		&i.Tx,
+		&i.Gust,
+		&i.RainAccum,
+		&i.TnTimestamp,
+		&i.TxTimestamp,
+		&i.GustTimestamp,
+		&i.Timestamp,
 	)
 	return i, err
 }

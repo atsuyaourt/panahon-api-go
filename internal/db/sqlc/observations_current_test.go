@@ -88,7 +88,7 @@ func (ts *CurrentObservationTestSuite) TestGetNearestLatestStationObservation() 
 			Lon: station.Lon.Float32,
 		})
 	require.NoError(t, err)
-	require.Equal(t, obs.Temp, stnObs.ObservationsCurrent.Temp)
+	require.Equal(t, obs.Temp, stnObs.Temp)
 }
 
 func createRandomCurrentObservation(t *testing.T) ObservationsCurrent {
