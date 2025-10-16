@@ -1,28 +1,31 @@
 package token
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/aead/chacha20poly1305"
-	"github.com/o1egl/paseto"
+	"aidanwoods.dev/go-paseto"
 )
 
 // PasetoMaker is a PASETO Token maker
 type PasetoMaker struct {
-	paseto       *paseto.V2
-	symmetricKey []byte
+	symmetricKey paseto.V4SymmetricKey
 }
 
 // NewPasetoMaker creates a new PasetoMaker
 func NewPasetoMaker(symmetricKey string) (Maker, error) {
-	if len(symmetricKey) != chacha20poly1305.KeySize {
-		return nil, fmt.Errorf("invalid key size: must be exactly %d characters", chacha20poly1305.KeySize)
+	if len(symmetricKey) != 32 {
+		return nil, fmt.Errorf("invalid key size: must be exactly 32 characters")
+	}
+
+	key, err := paseto.V4SymmetricKeyFromBytes([]byte(symmetricKey))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create symmetric key: %w", err)
 	}
 
 	maker := &PasetoMaker{
-		paseto:       paseto.NewV2(),
-		symmetricKey: []byte(symmetricKey),
+		symmetricKey: key,
 	}
 	return maker, nil
 }
@@ -34,23 +37,39 @@ func (maker *PasetoMaker) CreateToken(user User, duration time.Duration) (string
 		return "", payload, err
 	}
 
-	token, err := maker.paseto.Encrypt(maker.symmetricKey, payload, nil)
+	claimsJSON, err := json.Marshal(payload)
+	if err != nil {
+		return "", payload, err
+	}
+
+	tok, err := paseto.NewTokenFromClaimsJSON(claimsJSON, nil)
+	if err != nil {
+		return "", payload, err
+	}
+	tok.SetIssuedAt(payload.IssuedAt)
+	tok.SetExpiration(payload.ExpiresAt)
+
+	token := tok.V4Encrypt(maker.symmetricKey, nil)
+
 	return token, payload, err
 }
 
 // VerifyToken checks if the token is valid or not
 func (maker *PasetoMaker) VerifyToken(token string) (*Payload, error) {
-	payload := &Payload{}
+	parser := paseto.NewParser()
+	parser.AddRule(paseto.NotExpired())
 
-	err := maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
-	if err != nil {
-		return nil, ErrInvalidToken
-	}
-
-	err = payload.Valid()
+	tok, err := parser.ParseV4Local(maker.symmetricKey, token, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return payload, nil
+	claimsJSON := tok.ClaimsJSON()
+
+	var payload Payload
+	if err := json.Unmarshal(claimsJSON, &payload); err != nil {
+		return nil, err
+	}
+
+	return &payload, nil
 }

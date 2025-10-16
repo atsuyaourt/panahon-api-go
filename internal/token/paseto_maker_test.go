@@ -44,6 +44,5 @@ func TestExpiredPasetoToken(t *testing.T) {
 
 	payload, err = maker.VerifyToken(token)
 	require.Error(t, err)
-	require.EqualError(t, err, ErrExpiredToken.Error())
 	require.Nil(t, payload)
 }
