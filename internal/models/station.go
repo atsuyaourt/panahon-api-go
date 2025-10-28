@@ -43,12 +43,12 @@ func NewStation(station db.ObservationsStation, simple bool) Station {
 	if station.Elevation.Valid {
 		res.Elevation = &station.Elevation.Float32
 	}
+	if station.StationType.Valid {
+		res.StationType = station.StationType.String
+	}
 	if !simple {
 		if station.MobileNumber.Valid {
 			res.MobileNumber = station.MobileNumber.String
-		}
-		if station.StationType.Valid {
-			res.StationType = station.StationType.String
 		}
 		if station.StationType2.Valid {
 			res.StationType2 = station.StationType2.String
@@ -56,12 +56,12 @@ func NewStation(station db.ObservationsStation, simple bool) Station {
 		if station.StationUrl.Valid {
 			res.StationUrl = station.StationUrl.String
 		}
-		if station.Status.Valid {
-			res.Status = station.Status.String
-		}
-		if station.Status.Valid {
+		if station.DateInstalled.Valid {
 			res.DateInstalled = util.Date{Time: station.DateInstalled.Time}
 		}
+	}
+	if station.Status.Valid {
+		res.Status = station.Status.String
 	}
 	if station.Province.Valid {
 		res.Province = util.Province(station.Province.String)
