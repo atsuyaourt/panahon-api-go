@@ -1,4 +1,11 @@
 definitions:
+  CSIMisolParams:
+    properties:
+      weather:
+        type: string
+    required:
+    - weather
+    type: object
   CreateRoleParams:
     properties:
       description:
@@ -145,15 +152,6 @@ definitions:
     - password
     - username
     type: object
-  LufftResponse:
-    properties:
-      health:
-        $ref: '#/definitions/StationHealth'
-      observation:
-        $ref: '#/definitions/StationObservation'
-      station:
-        $ref: '#/definitions/Station'
-    type: object
   LufftSMSParams:
     properties:
       msg:
@@ -163,6 +161,15 @@ definitions:
     required:
     - msg
     - number
+    type: object
+  ObservationResponse:
+    properties:
+      health:
+        $ref: '#/definitions/StationHealth'
+      observation:
+        $ref: '#/definitions/StationObservation'
+      station:
+        $ref: '#/definitions/Station'
     type: object
   PaginatedRoles:
     type: object
@@ -363,6 +370,7 @@ definitions:
       elevation:
         type: number
       id:
+        format: int64
         type: integer
       lat:
         type: number
@@ -459,6 +467,28 @@ info:
   title: Panahon API
   version: "1.0"
 paths:
+  /csi:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Circuit Solutions Misol parameters
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/CSIMisolParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ObservationResponse'
+      summary: Store Misol observation and health
+      tags:
+      - csi
+      - misol
   /glabs:
     get:
       consumes:
@@ -550,8 +580,8 @@ paths:
         type: integer
       - description: limit
         in: query
-        maximum: 30
-        minimum: 1
+        maximum: 50000
+        minimum: 50
         name: per_page
         type: integer
       - in: query
@@ -601,7 +631,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/LufftResponse'
+            $ref: '#/definitions/ObservationResponse'
       summary: Store Lufft observation and health
       tags:
       - promotexter
@@ -865,7 +895,6 @@ paths:
         type: integer
       - description: limit
         in: query
-        maximum: 30
         minimum: 1
         name: per_page
         type: integer

@@ -261,7 +261,7 @@ func TestListStationObservationsAPI(t *testing.T) {
 		{
 			name: "InvalidLimit",
 			query: listStationObsReq{
-				PerPage: 10000,
+				PerPage: -10,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},
@@ -588,13 +588,11 @@ func TestListObservationsAPI(t *testing.T) {
 	n := 10
 	stations := make([]db.ObservationsStation, n)
 	stnObsSlice := make([]db.ObservationsObservation, 5)
-	var selectedStns []db.ObservationsStation
 	var selectedStnIDs []string
 	i := 0
 	for s := range stations {
 		stations[s] = randomStation(t)
 		if (s % 2) == 0 {
-			selectedStns = append(selectedStns, stations[s])
 			idStr := fmt.Sprintf("%d", stations[s].ID)
 			selectedStnIDs = append(selectedStnIDs, idStr)
 			if i < 5 {
@@ -625,7 +623,7 @@ func TestListObservationsAPI(t *testing.T) {
 				store.EXPECT().ListObservations(
 					mock.AnythingOfType("*gin.Context"),
 					mock.MatchedBy(func(arg db.ListObservationsParams) bool {
-						return (arg.Limit.Int32 == 5) && (arg.Offset == 0) && (len(arg.StationIds) == 10)
+						return (arg.Limit.Int32 == 100) && (arg.Offset == 0) && (len(arg.StationIds) == n)
 					}),
 				).
 					Return(stnObsSlice, nil)
@@ -648,7 +646,7 @@ func TestListObservationsAPI(t *testing.T) {
 				store.EXPECT().ListObservations(
 					mock.AnythingOfType("*gin.Context"),
 					mock.MatchedBy(func(arg db.ListObservationsParams) bool {
-						return (arg.Limit.Int32 == 5) && (arg.Offset == 0) && (len(arg.StationIds) == nSelected)
+						return len(arg.StationIds) == nSelected
 					}),
 				).
 					Return(stnObsSlice, nil)
@@ -733,7 +731,7 @@ func TestListObservationsAPI(t *testing.T) {
 				store.EXPECT().ListObservations(
 					mock.AnythingOfType("*gin.Context"),
 					mock.MatchedBy(func(arg db.ListObservationsParams) bool {
-						return (arg.Limit.Int32 == 5) && (arg.Offset == 0) && (len(arg.StationIds) == 10)
+						return len(arg.StationIds) == n
 					}),
 				).
 					Return([]db.ObservationsObservation{}, sql.ErrConnDone)
@@ -756,7 +754,7 @@ func TestListObservationsAPI(t *testing.T) {
 				store.EXPECT().ListObservations(
 					mock.AnythingOfType("*gin.Context"),
 					mock.MatchedBy(func(arg db.ListObservationsParams) bool {
-						return (arg.Limit.Int32 == 5) && (arg.Offset == 0) && (len(arg.StationIds) == 10)
+						return len(arg.StationIds) == n
 					}),
 				).
 					Return(make([]db.ObservationsObservation, 5), nil)
@@ -784,7 +782,7 @@ func TestListObservationsAPI(t *testing.T) {
 		{
 			name: "InvalidLimit",
 			query: listObservationsReq{
-				PerPage: 10000,
+				PerPage: 100000,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 			},

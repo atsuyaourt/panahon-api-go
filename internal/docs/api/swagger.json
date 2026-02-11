@@ -10,6 +10,40 @@
         "version": "1.0"
     },
     "paths": {
+        "/csi": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csi",
+                    "misol"
+                ],
+                "summary": "Store Misol observation and health",
+                "parameters": [
+                    {
+                        "description": "Circuit Solutions Misol parameters",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CSIMisolParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ObservationResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/glabs": {
             "get": {
                 "consumes": [
@@ -155,8 +189,8 @@
                         "in": "query"
                     },
                     {
-                        "maximum": 30,
-                        "minimum": 1,
+                        "maximum": 50000,
+                        "minimum": 50,
                         "type": "integer",
                         "description": "limit",
                         "name": "per_page",
@@ -232,7 +266,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/LufftResponse"
+                            "$ref": "#/definitions/ObservationResponse"
                         }
                     }
                 }
@@ -688,7 +722,6 @@
                         "in": "query"
                     },
                     {
-                        "maximum": 30,
                         "minimum": 1,
                         "type": "integer",
                         "description": "limit",
@@ -1234,6 +1267,17 @@
         }
     },
     "definitions": {
+        "CSIMisolParams": {
+            "type": "object",
+            "required": [
+                "weather"
+            ],
+            "properties": {
+                "weather": {
+                    "type": "string"
+                }
+            }
+        },
         "CreateRoleParams": {
             "type": "object",
             "required": [
@@ -1454,20 +1498,6 @@
                 }
             }
         },
-        "LufftResponse": {
-            "type": "object",
-            "properties": {
-                "health": {
-                    "$ref": "#/definitions/StationHealth"
-                },
-                "observation": {
-                    "$ref": "#/definitions/StationObservation"
-                },
-                "station": {
-                    "$ref": "#/definitions/Station"
-                }
-            }
-        },
         "LufftSMSParams": {
             "type": "object",
             "required": [
@@ -1480,6 +1510,20 @@
                 },
                 "number": {
                     "type": "string"
+                }
+            }
+        },
+        "ObservationResponse": {
+            "type": "object",
+            "properties": {
+                "health": {
+                    "$ref": "#/definitions/StationHealth"
+                },
+                "observation": {
+                    "$ref": "#/definitions/StationObservation"
+                },
+                "station": {
+                    "$ref": "#/definitions/Station"
                 }
             }
         },
@@ -1782,7 +1826,8 @@
                     "type": "number"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "lat": {
                     "type": "number"

@@ -4,3 +4,6 @@ replace pgtype.Text string
 replace pgtype.Date string
 replace pgtype.Timestamptz string
 replace util.Float4 number
+replace util.Date string
+replace util.Province string
+replace util.Region string

@@ -18,6 +18,40 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/csi": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "csi",
+                    "misol"
+                ],
+                "summary": "Store Misol observation and health",
+                "parameters": [
+                    {
+                        "description": "Circuit Solutions Misol parameters",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/CSIMisolParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ObservationResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/glabs": {
             "get": {
                 "consumes": [
@@ -163,8 +197,8 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "maximum": 30,
-                        "minimum": 1,
+                        "maximum": 50000,
+                        "minimum": 50,
                         "type": "integer",
                         "description": "limit",
                         "name": "per_page",
@@ -240,7 +274,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/LufftResponse"
+                            "$ref": "#/definitions/ObservationResponse"
                         }
                     }
                 }
@@ -696,7 +730,6 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "maximum": 30,
                         "minimum": 1,
                         "type": "integer",
                         "description": "limit",
@@ -1242,6 +1275,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "CSIMisolParams": {
+            "type": "object",
+            "required": [
+                "weather"
+            ],
+            "properties": {
+                "weather": {
+                    "type": "string"
+                }
+            }
+        },
         "CreateRoleParams": {
             "type": "object",
             "required": [
@@ -1462,20 +1506,6 @@ const docTemplate = `{
                 }
             }
         },
-        "LufftResponse": {
-            "type": "object",
-            "properties": {
-                "health": {
-                    "$ref": "#/definitions/StationHealth"
-                },
-                "observation": {
-                    "$ref": "#/definitions/StationObservation"
-                },
-                "station": {
-                    "$ref": "#/definitions/Station"
-                }
-            }
-        },
         "LufftSMSParams": {
             "type": "object",
             "required": [
@@ -1488,6 +1518,20 @@ const docTemplate = `{
                 },
                 "number": {
                     "type": "string"
+                }
+            }
+        },
+        "ObservationResponse": {
+            "type": "object",
+            "properties": {
+                "health": {
+                    "$ref": "#/definitions/StationHealth"
+                },
+                "observation": {
+                    "$ref": "#/definitions/StationObservation"
+                },
+                "station": {
+                    "$ref": "#/definitions/Station"
                 }
             }
         },
@@ -1790,7 +1834,8 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "lat": {
                     "type": "number"
