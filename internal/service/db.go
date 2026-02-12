@@ -146,7 +146,7 @@ func InsertCurrentDavisObservationsV2(ctx context.Context, davisFactory sensor.D
 				Msg("database error")
 			continue
 		}
-		if stn.Status.String == "INACTIVE" || !dStn.ApiKey.Valid || dStn.ApiKey.String == "" || !dStn.ApiSecret.Valid || dStn.ApiSecret.String == "" {
+		if stn.Status.String == "INACTIVE" || !dStn.APIKey.Valid || dStn.APIKey.String == "" || !dStn.APISecret.Valid || dStn.APISecret.String == "" {
 			continue
 		}
 
@@ -154,8 +154,8 @@ func InsertCurrentDavisObservationsV2(ctx context.Context, davisFactory sensor.D
 
 		creds := sensor.DavisAPICredentials{
 			Type:      "v2",
-			APIKey:    dStn.ApiKey.String,
-			APISecret: dStn.ApiSecret.String,
+			APIKey:    dStn.APIKey.String,
+			APISecret: dStn.APISecret.String,
 		}
 		davis, err := davisFactory(creds, sleepDuration)
 		if err != nil {

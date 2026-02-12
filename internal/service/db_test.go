@@ -164,13 +164,13 @@ func TestInsertCurrentDavisObservationsV2(t *testing.T) {
 
 					dStn := db.Weatherlink{
 						StationID: stnID,
-						ApiKey: pgtype.Text{
+						APIKey: pgtype.Text{
 							String: util.RandomString(12),
 							Valid:  true,
 						},
 					}
 					if i != 1 {
-						dStn.ApiSecret = pgtype.Text{
+						dStn.APISecret = pgtype.Text{
 							String: util.RandomString(24),
 							Valid:  true,
 						}
@@ -218,7 +218,7 @@ func TestInsertCurrentDavisObservationsV2(t *testing.T) {
 					dObs := davisObsSlice[i]
 					fmt.Printf("stn%05d\n", stn.ID)
 					store.EXPECT().GetStation(mock.AnythingOfType("backgroundCtx"), dStn.StationID).Return(stn, nil).Once()
-					if stn.Status.String == "INACTIVE" || !((dStn.ApiKey.Valid && dStn.ApiKey.String != "") && (dStn.ApiSecret.Valid && dStn.ApiSecret.String != "")) {
+					if stn.Status.String == "INACTIVE" || !((dStn.APIKey.Valid && dStn.APIKey.String != "") && (dStn.APISecret.Valid && dStn.APISecret.String != "")) {
 						continue
 					}
 					davisSensor.EXPECT().FetchLatest().Return([]sensor.DavisCurrentObservation{dObs}, nil).Once()

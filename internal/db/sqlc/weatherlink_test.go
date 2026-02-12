@@ -61,11 +61,11 @@ func createRandomWeatherlinkStation(t *testing.T, stationType string) Weatherlin
 	}
 
 	if stationType == "V2" {
-		arg.ApiKey = pgtype.Text{
+		arg.APIKey = pgtype.Text{
 			String: util.RandomString(12),
 			Valid:  true,
 		}
-		arg.ApiSecret = pgtype.Text{
+		arg.APISecret = pgtype.Text{
 			String: util.RandomString(24),
 			Valid:  true,
 		}
@@ -81,10 +81,10 @@ func createRandomWeatherlinkStation(t *testing.T, stationType string) Weatherlin
 	require.NotEmpty(t, wl)
 
 	if stationType == "V2" {
-		require.True(t, wl.ApiKey.Valid)
-		require.Equal(t, arg.ApiKey.String, wl.ApiKey.String)
-		require.True(t, wl.ApiSecret.Valid)
-		require.Equal(t, arg.ApiSecret.String, wl.ApiSecret.String)
+		require.True(t, wl.APIKey.Valid)
+		require.Equal(t, arg.APIKey.String, wl.APIKey.String)
+		require.True(t, wl.APISecret.Valid)
+		require.Equal(t, arg.APISecret.String, wl.APISecret.String)
 	} else {
 		require.True(t, wl.Uuid.Valid)
 		require.Equal(t, arg.Uuid.String, wl.Uuid.String)

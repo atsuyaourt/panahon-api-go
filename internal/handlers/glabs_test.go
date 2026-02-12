@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGLabsOptInApi(t *testing.T) {
+func TestGLabsOptInAPI(t *testing.T) {
 	glabsOptInRes := randomGlabsOptInRes(t)
 	simAccessToken := db.SimAccessToken{
 		AccessToken:  glabsOptInRes.AccessToken,
@@ -194,7 +194,7 @@ func TestGLabsOptInApi(t *testing.T) {
 	}
 }
 
-func TestGLabsUnsubscribeApi(t *testing.T) {
+func TestGLabsUnsubscribeAPI(t *testing.T) {
 	glabsOptInRes := randomGlabsOptInRes(t)
 	simAccessToken := db.SimAccessToken{
 		AccessToken:  glabsOptInRes.AccessToken,
@@ -289,7 +289,7 @@ func TestGLabsUnsubscribeApi(t *testing.T) {
 	}
 }
 
-func TestCreateGLabsLoadApi(t *testing.T) {
+func TestCreateGLabsLoadAPI(t *testing.T) {
 	gLabsLoad := randomGLabsLoad()
 
 	testCases := []struct {
