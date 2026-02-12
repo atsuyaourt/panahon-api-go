@@ -1,27 +1,30 @@
+template: testify
+template-data:
+  unroll-variadic: true
 packages:
   github.com/emiliogozo/panahon-api-go/internal/db/sqlc:
     interfaces:
       Store:
         config:
-          dir: "internal/mocks/db"
-          filename: "store.go"
-          outpkg: "mockdb"
+          dir: internal/mocks/db
+          filename: store.go
+          pkgname: mockdb
   github.com/emiliogozo/panahon-api-go/internal/sensor:
     interfaces:
-      Fetcher:
-        config:
-          dir: "internal/mocks"
-          filename: "fetcher.go"
-          outpkg: "mocksensor"
       DavisSensor:
         config:
-          dir: "internal/mocks/sensor"
-          filename: "davis.go"
-          outpkg: "mocksensor"
+          dir: internal/mocks/sensor
+          filename: davis.go
+          pkgname: mocksensor
+      Fetcher:
+        config:
+          dir: internal/mocks
+          filename: fetcher.go
+          pkgname: mocksensor
   github.com/emiliogozo/panahon-api-go/internal/token:
     interfaces:
       Maker:
         config:
-          dir: "internal/mocks/token"
-          filename: "maker.go"
-          outpkg: "mocktoken"
+          dir: internal/mocks/token
+          filename: maker.go
+          pkgname: mocktoken
