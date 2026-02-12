@@ -96,8 +96,11 @@ func TestNewDavis(t *testing.T) {
 				Pass: "testdav!sPAss",
 			},
 			checkInstance: func(sensor *Davis, err error) {
-				require.Nil(t, sensor)
-				require.Error(t, err)
+				require.NotNil(t, sensor)
+				require.NoError(t, err)
+				require.Equal(t, "testdavisUser", sensor.apiCredentials.User)
+				require.Equal(t, "testdav!sPAss", sensor.apiCredentials.Pass)
+				require.Empty(t, sensor.apiCredentials.APIToken)
 			},
 		},
 		{
