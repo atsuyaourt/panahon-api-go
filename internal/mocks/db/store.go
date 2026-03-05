@@ -287,6 +287,72 @@ func (_c *MockStore_BulkDeleteUserRoles_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// CountAPITokensByUser provides a mock function for the type MockStore
+func (_mock *MockStore) CountAPITokensByUser(ctx context.Context, userID int64) (int64, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountAPITokensByUser")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) (int64, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) int64); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_CountAPITokensByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountAPITokensByUser'
+type MockStore_CountAPITokensByUser_Call struct {
+	*mock.Call
+}
+
+// CountAPITokensByUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int64
+func (_e *MockStore_Expecter) CountAPITokensByUser(ctx interface{}, userID interface{}) *MockStore_CountAPITokensByUser_Call {
+	return &MockStore_CountAPITokensByUser_Call{Call: _e.mock.On("CountAPITokensByUser", ctx, userID)}
+}
+
+func (_c *MockStore_CountAPITokensByUser_Call) Run(run func(ctx context.Context, userID int64)) *MockStore_CountAPITokensByUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int64
+		if args[1] != nil {
+			arg1 = args[1].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_CountAPITokensByUser_Call) Return(n int64, err error) *MockStore_CountAPITokensByUser_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockStore_CountAPITokensByUser_Call) RunAndReturn(run func(ctx context.Context, userID int64) (int64, error)) *MockStore_CountAPITokensByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CountLufftStationMsg provides a mock function for the type MockStore
 func (_mock *MockStore) CountLufftStationMsg(ctx context.Context, stationID int64) (int64, error) {
 	ret := _mock.Called(ctx, stationID)
@@ -931,6 +997,72 @@ func (_c *MockStore_CountUsers_Call) Return(n int64, err error) *MockStore_Count
 }
 
 func (_c *MockStore_CountUsers_Call) RunAndReturn(run func(ctx context.Context) (int64, error)) *MockStore_CountUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateAPIToken provides a mock function for the type MockStore
+func (_mock *MockStore) CreateAPIToken(ctx context.Context, arg db.CreateAPITokenParams) (db.APIToken, error) {
+	ret := _mock.Called(ctx, arg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateAPIToken")
+	}
+
+	var r0 db.APIToken
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.CreateAPITokenParams) (db.APIToken, error)); ok {
+		return returnFunc(ctx, arg)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, db.CreateAPITokenParams) db.APIToken); ok {
+		r0 = returnFunc(ctx, arg)
+	} else {
+		r0 = ret.Get(0).(db.APIToken)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, db.CreateAPITokenParams) error); ok {
+		r1 = returnFunc(ctx, arg)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_CreateAPIToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateAPIToken'
+type MockStore_CreateAPIToken_Call struct {
+	*mock.Call
+}
+
+// CreateAPIToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - arg db.CreateAPITokenParams
+func (_e *MockStore_Expecter) CreateAPIToken(ctx interface{}, arg interface{}) *MockStore_CreateAPIToken_Call {
+	return &MockStore_CreateAPIToken_Call{Call: _e.mock.On("CreateAPIToken", ctx, arg)}
+}
+
+func (_c *MockStore_CreateAPIToken_Call) Run(run func(ctx context.Context, arg db.CreateAPITokenParams)) *MockStore_CreateAPIToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 db.CreateAPITokenParams
+		if args[1] != nil {
+			arg1 = args[1].(db.CreateAPITokenParams)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_CreateAPIToken_Call) Return(aPIToken db.APIToken, err error) *MockStore_CreateAPIToken_Call {
+	_c.Call.Return(aPIToken, err)
+	return _c
+}
+
+func (_c *MockStore_CreateAPIToken_Call) RunAndReturn(run func(ctx context.Context, arg db.CreateAPITokenParams) (db.APIToken, error)) *MockStore_CreateAPIToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1859,6 +1991,63 @@ func (_c *MockStore_CreateWeatherlinkStation_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// DeleteAPIToken provides a mock function for the type MockStore
+func (_mock *MockStore) DeleteAPIToken(ctx context.Context, id int64) error {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAPIToken")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) error); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_DeleteAPIToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteAPIToken'
+type MockStore_DeleteAPIToken_Call struct {
+	*mock.Call
+}
+
+// DeleteAPIToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *MockStore_Expecter) DeleteAPIToken(ctx interface{}, id interface{}) *MockStore_DeleteAPIToken_Call {
+	return &MockStore_DeleteAPIToken_Call{Call: _e.mock.On("DeleteAPIToken", ctx, id)}
+}
+
+func (_c *MockStore_DeleteAPIToken_Call) Run(run func(ctx context.Context, id int64)) *MockStore_DeleteAPIToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int64
+		if args[1] != nil {
+			arg1 = args[1].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DeleteAPIToken_Call) Return(err error) *MockStore_DeleteAPIToken_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_DeleteAPIToken_Call) RunAndReturn(run func(ctx context.Context, id int64) error) *MockStore_DeleteAPIToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteMisolStation provides a mock function for the type MockStore
 func (_mock *MockStore) DeleteMisolStation(ctx context.Context, id int64) error {
 	ret := _mock.Called(ctx, id)
@@ -2434,6 +2623,138 @@ func (_c *MockStore_FirstOrCreateSimAccessTokenTx_Call) Return(firstOrCreateSimA
 }
 
 func (_c *MockStore_FirstOrCreateSimAccessTokenTx_Call) RunAndReturn(run func(ctx context.Context, arg db.FirstOrCreateSimAccessTokenTxParams) (db.FirstOrCreateSimAccessTokenTxResult, error)) *MockStore_FirstOrCreateSimAccessTokenTx_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAPIToken provides a mock function for the type MockStore
+func (_mock *MockStore) GetAPIToken(ctx context.Context, id int64) (db.APIToken, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAPIToken")
+	}
+
+	var r0 db.APIToken
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) (db.APIToken, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) db.APIToken); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Get(0).(db.APIToken)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_GetAPIToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAPIToken'
+type MockStore_GetAPIToken_Call struct {
+	*mock.Call
+}
+
+// GetAPIToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *MockStore_Expecter) GetAPIToken(ctx interface{}, id interface{}) *MockStore_GetAPIToken_Call {
+	return &MockStore_GetAPIToken_Call{Call: _e.mock.On("GetAPIToken", ctx, id)}
+}
+
+func (_c *MockStore_GetAPIToken_Call) Run(run func(ctx context.Context, id int64)) *MockStore_GetAPIToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int64
+		if args[1] != nil {
+			arg1 = args[1].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_GetAPIToken_Call) Return(aPIToken db.APIToken, err error) *MockStore_GetAPIToken_Call {
+	_c.Call.Return(aPIToken, err)
+	return _c
+}
+
+func (_c *MockStore_GetAPIToken_Call) RunAndReturn(run func(ctx context.Context, id int64) (db.APIToken, error)) *MockStore_GetAPIToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetAPITokenByHash provides a mock function for the type MockStore
+func (_mock *MockStore) GetAPITokenByHash(ctx context.Context, tokenHash string) (db.APIToken, error) {
+	ret := _mock.Called(ctx, tokenHash)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAPITokenByHash")
+	}
+
+	var r0 db.APIToken
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (db.APIToken, error)); ok {
+		return returnFunc(ctx, tokenHash)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) db.APIToken); ok {
+		r0 = returnFunc(ctx, tokenHash)
+	} else {
+		r0 = ret.Get(0).(db.APIToken)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tokenHash)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_GetAPITokenByHash_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAPITokenByHash'
+type MockStore_GetAPITokenByHash_Call struct {
+	*mock.Call
+}
+
+// GetAPITokenByHash is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tokenHash string
+func (_e *MockStore_Expecter) GetAPITokenByHash(ctx interface{}, tokenHash interface{}) *MockStore_GetAPITokenByHash_Call {
+	return &MockStore_GetAPITokenByHash_Call{Call: _e.mock.On("GetAPITokenByHash", ctx, tokenHash)}
+}
+
+func (_c *MockStore_GetAPITokenByHash_Call) Run(run func(ctx context.Context, tokenHash string)) *MockStore_GetAPITokenByHash_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_GetAPITokenByHash_Call) Return(aPIToken db.APIToken, err error) *MockStore_GetAPITokenByHash_Call {
+	_c.Call.Return(aPIToken, err)
+	return _c
+}
+
+func (_c *MockStore_GetAPITokenByHash_Call) RunAndReturn(run func(ctx context.Context, tokenHash string) (db.APIToken, error)) *MockStore_GetAPITokenByHash_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3618,6 +3939,74 @@ func (_c *MockStore_InsertCurrentObservations_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// ListAPITokensByUser provides a mock function for the type MockStore
+func (_mock *MockStore) ListAPITokensByUser(ctx context.Context, userID int64) ([]db.APIToken, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAPITokensByUser")
+	}
+
+	var r0 []db.APIToken
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) ([]db.APIToken, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) []db.APIToken); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]db.APIToken)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int64) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_ListAPITokensByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAPITokensByUser'
+type MockStore_ListAPITokensByUser_Call struct {
+	*mock.Call
+}
+
+// ListAPITokensByUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID int64
+func (_e *MockStore_Expecter) ListAPITokensByUser(ctx interface{}, userID interface{}) *MockStore_ListAPITokensByUser_Call {
+	return &MockStore_ListAPITokensByUser_Call{Call: _e.mock.On("ListAPITokensByUser", ctx, userID)}
+}
+
+func (_c *MockStore_ListAPITokensByUser_Call) Run(run func(ctx context.Context, userID int64)) *MockStore_ListAPITokensByUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int64
+		if args[1] != nil {
+			arg1 = args[1].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ListAPITokensByUser_Call) Return(aPITokens []db.APIToken, err error) *MockStore_ListAPITokensByUser_Call {
+	_c.Call.Return(aPITokens, err)
+	return _c
+}
+
+func (_c *MockStore_ListAPITokensByUser_Call) RunAndReturn(run func(ctx context.Context, userID int64) ([]db.APIToken, error)) *MockStore_ListAPITokensByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListLatestObservations provides a mock function for the type MockStore
 func (_mock *MockStore) ListLatestObservations(ctx context.Context) ([]db.ListLatestObservationsRow, error) {
 	ret := _mock.Called(ctx)
@@ -4560,6 +4949,63 @@ func (_c *MockStore_ListWeatherlinkStations_Call) Return(weatherlinks []db.Weath
 }
 
 func (_c *MockStore_ListWeatherlinkStations_Call) RunAndReturn(run func(ctx context.Context, arg db.ListWeatherlinkStationsParams) ([]db.Weatherlink, error)) *MockStore_ListWeatherlinkStations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateAPITokenLastUsedAt provides a mock function for the type MockStore
+func (_mock *MockStore) UpdateAPITokenLastUsedAt(ctx context.Context, id int64) error {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAPITokenLastUsedAt")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64) error); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_UpdateAPITokenLastUsedAt_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAPITokenLastUsedAt'
+type MockStore_UpdateAPITokenLastUsedAt_Call struct {
+	*mock.Call
+}
+
+// UpdateAPITokenLastUsedAt is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id int64
+func (_e *MockStore_Expecter) UpdateAPITokenLastUsedAt(ctx interface{}, id interface{}) *MockStore_UpdateAPITokenLastUsedAt_Call {
+	return &MockStore_UpdateAPITokenLastUsedAt_Call{Call: _e.mock.On("UpdateAPITokenLastUsedAt", ctx, id)}
+}
+
+func (_c *MockStore_UpdateAPITokenLastUsedAt_Call) Run(run func(ctx context.Context, id int64)) *MockStore_UpdateAPITokenLastUsedAt_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 int64
+		if args[1] != nil {
+			arg1 = args[1].(int64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_UpdateAPITokenLastUsedAt_Call) Return(err error) *MockStore_UpdateAPITokenLastUsedAt_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_UpdateAPITokenLastUsedAt_Call) RunAndReturn(run func(ctx context.Context, id int64) error) *MockStore_UpdateAPITokenLastUsedAt_Call {
 	_c.Call.Return(run)
 	return _c
 }

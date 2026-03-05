@@ -14,11 +14,12 @@ sql:
         rename:
           api_key: APIKey
           api_secret: APISecret
+          api_token: APIToken
         overrides:
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
           - column: "observations_station.geom"
-            go_type: "github.com/emiliogozo/panahon-api-go/internal/util.Point"
+            go_type: "github.com/emiliogozo/panahon-api-go/internal/types.Point"
           - column: "mv_observations_current.rain"
             go_type: "github.com/jackc/pgx/v5/pgtype.Float4"
           - column: "mv_observations_current.temp"

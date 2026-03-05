@@ -14,6 +14,7 @@ import (
 type Querier interface {
 	BatchCreateUserRoles(ctx context.Context, arg []BatchCreateUserRolesParams) *BatchCreateUserRolesBatchResults
 	BatchDeleteUserRoles(ctx context.Context, arg []BatchDeleteUserRolesParams) *BatchDeleteUserRolesBatchResults
+	CountAPITokensByUser(ctx context.Context, userID int64) (int64, error)
 	CountLufftStationMsg(ctx context.Context, stationID int64) (int64, error)
 	CountMOObservations(ctx context.Context, arg CountMOObservationsParams) (int64, error)
 	CountObservations(ctx context.Context, arg CountObservationsParams) (int64, error)
@@ -24,6 +25,7 @@ type Querier interface {
 	CountStationsWithinBBox(ctx context.Context, arg CountStationsWithinBBoxParams) (int64, error)
 	CountStationsWithinRadius(ctx context.Context, arg CountStationsWithinRadiusParams) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateAPIToken(ctx context.Context, arg CreateAPITokenParams) (APIToken, error)
 	CreateCurrentObservation(ctx context.Context, arg CreateCurrentObservationParams) (ObservationsCurrent, error)
 	CreateGLabsLoad(ctx context.Context, arg CreateGLabsLoadParams) (GlabsLoad, error)
 	CreateMisolStation(ctx context.Context, arg CreateMisolStationParams) (MisolStation, error)
@@ -37,6 +39,7 @@ type Querier interface {
 	CreateStationObservation(ctx context.Context, arg CreateStationObservationParams) (ObservationsObservation, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateWeatherlinkStation(ctx context.Context, arg CreateWeatherlinkStationParams) (Weatherlink, error)
+	DeleteAPIToken(ctx context.Context, id int64) error
 	DeleteMisolStation(ctx context.Context, id int64) error
 	DeleteRole(ctx context.Context, id int64) error
 	DeleteSession(ctx context.Context, id uuid.UUID) error
@@ -46,6 +49,8 @@ type Querier interface {
 	DeleteStationMOObservation(ctx context.Context, arg DeleteStationMOObservationParams) error
 	DeleteStationObservation(ctx context.Context, arg DeleteStationObservationParams) error
 	DeleteUser(ctx context.Context, id int64) error
+	GetAPIToken(ctx context.Context, id int64) (APIToken, error)
+	GetAPITokenByHash(ctx context.Context, tokenHash string) (APIToken, error)
 	GetLatestStationObservation(ctx context.Context, id int64) (GetLatestStationObservationRow, error)
 	GetMisolStation(ctx context.Context, id int64) (MisolStation, error)
 	GetNearestLatestStationObservation(ctx context.Context, arg GetNearestLatestStationObservationParams) (GetNearestLatestStationObservationRow, error)
@@ -64,6 +69,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	InsertCurrentMOObservations(ctx context.Context) ([]ObservationsCurrent, error)
 	InsertCurrentObservations(ctx context.Context) ([]ObservationsCurrent, error)
+	ListAPITokensByUser(ctx context.Context, userID int64) ([]APIToken, error)
 	ListLatestObservations(ctx context.Context) ([]ListLatestObservationsRow, error)
 	ListLufftStationMsg(ctx context.Context, arg ListLufftStationMsgParams) ([]ListLufftStationMsgRow, error)
 	ListMOObservations(ctx context.Context, arg ListMOObservationsParams) ([]ObservationsMoObservation, error)
@@ -78,6 +84,7 @@ type Querier interface {
 	ListUserRoles(ctx context.Context, userID int64) ([]string, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	ListWeatherlinkStations(ctx context.Context, arg ListWeatherlinkStationsParams) ([]Weatherlink, error)
+	UpdateAPITokenLastUsedAt(ctx context.Context, id int64) error
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateStation(ctx context.Context, arg UpdateStationParams) (ObservationsStation, error)
 	UpdateStationHealth(ctx context.Context, arg UpdateStationHealthParams) (ObservationsStationhealth, error)

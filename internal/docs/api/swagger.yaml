@@ -459,6 +459,69 @@ definitions:
     type: object
   handlers.paginatedLufftMsgLogs:
     type: object
+  models.APIToken:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      last_used_at:
+        type: string
+      name:
+        type: string
+      permissions:
+        $ref: '#/definitions/models.APITokenPermissions'
+      token_prefix:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.APITokenPermissions:
+    properties:
+      max_days_history:
+        description: 0 means unlimited
+        type: integer
+      station_ids:
+        description: null means all stations
+        items:
+          type: integer
+        type: array
+      variables:
+        description: null means all variables
+        items:
+          type: string
+        type: array
+    type: object
+  models.APITokenWithSecret:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      last_used_at:
+        type: string
+      name:
+        type: string
+      permissions:
+        $ref: '#/definitions/models.APITokenPermissions'
+      token:
+        type: string
+      token_prefix:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.CreateAPITokenReq:
+    properties:
+      expires_at:
+        type: string
+      name:
+        type: string
+      permissions:
+        $ref: '#/definitions/models.APITokenPermissions'
+    required:
+    - name
+    type: object
 info:
   contact:
     email: emiliogozo@proton.me
@@ -1191,6 +1254,82 @@ paths:
       summary: Update user
       tags:
       - users
+  /users/{id}/api-tokens:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.APIToken'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List API tokens for any user (Admin only)
+      tags:
+      - api-tokens
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Create API token parameters
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAPITokenReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.APITokenWithSecret'
+      security:
+      - BearerAuth: []
+      summary: Create API token for any user (Admin only)
+      tags:
+      - api-tokens
+  /users/{id}/api-tokens/{token_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Token ID
+        in: path
+        name: token_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Delete API token for any user (Admin only)
+      tags:
+      - api-tokens
   /users/auth:
     get:
       consumes:
@@ -1238,6 +1377,66 @@ paths:
       summary: User logout
       tags:
       - users
+  /users/me/api-tokens:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.APIToken'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List API tokens for current user
+      tags:
+      - api-tokens
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create API token parameters
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAPITokenReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.APITokenWithSecret'
+      security:
+      - BearerAuth: []
+      summary: Create API token for current user
+      tags:
+      - api-tokens
+  /users/me/api-tokens/{token_id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token ID
+        in: path
+        name: token_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Delete API token for current user
+      tags:
+      - api-tokens
   /users/register:
     post:
       consumes:
@@ -1258,6 +1457,10 @@ paths:
       tags:
       - users
 securityDefinitions:
+  APITokenAuth:
+    in: query
+    name: api_key
+    type: apiKey
   BearerAuth:
     in: header
     name: Authorization

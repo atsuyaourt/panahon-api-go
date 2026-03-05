@@ -38,6 +38,10 @@ var interruptSignals = []os.Signal{
 //	@securityDefinitions.apikey	BearerAuth
 //	@in							header
 //	@name						Authorization
+//
+//	@securityDefinitions.apikey	APITokenAuth
+//	@in							query
+//	@name						api_key
 func main() {
 	config, err := util.LoadConfig(".")
 	if err != nil {

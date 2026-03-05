@@ -299,7 +299,8 @@ func TestListStationObservationsAPI(t *testing.T) {
 			handler := newTestHandler(store, nil)
 
 			router := gin.Default()
-			router.GET(":station_id/observations", handler.ListStationObservations)
+			router.GET(":station_id/observations",
+				handler.ListStationObservations)
 
 			recorder := httptest.NewRecorder()
 
@@ -1030,7 +1031,7 @@ func requireBodyMatchStationObservation(t *testing.T, body *bytes.Buffer, statio
 	var gotStationObs models.StationObservation
 	err = json.Unmarshal(data, &gotStationObs)
 	require.NoError(t, err)
-	require.Equal(t, models.NewStationObservation(stationObs), gotStationObs)
+	require.Equal(t, models.NewStationObservation(stationObs, nil), gotStationObs)
 }
 
 func requireBodyMatchStationObservations(t *testing.T, body *bytes.Buffer, stationObsSlice []db.ObservationsObservation) {
@@ -1043,7 +1044,7 @@ func requireBodyMatchStationObservations(t *testing.T, body *bytes.Buffer, stati
 
 	stationObsSliceRes := make([]models.StationObservation, len(stationObsSlice))
 	for i, obs := range stationObsSlice {
-		stationObsSliceRes[i] = models.NewStationObservation(obs)
+		stationObsSliceRes[i] = models.NewStationObservation(obs, nil)
 	}
 	require.Equal(t, stationObsSliceRes, gotStationObsSlice.Items)
 }

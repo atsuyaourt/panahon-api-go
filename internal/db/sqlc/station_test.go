@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/emiliogozo/panahon-api-go/internal/types"
 	"github.com/emiliogozo/panahon-api-go/internal/util"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
@@ -119,7 +120,7 @@ func (ts *StationTestSuite) TestListStationsWithinRadius() {
 			})
 		}
 		p := geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{float64(lon), float64(lat)}).SetSRID(4326)
-		createRandomStation(t, util.Point{Point: p})
+		createRandomStation(t, types.Point{Point: p})
 	}
 
 	arg := ListStationsWithinRadiusParams{
@@ -152,7 +153,7 @@ func (ts *StationTestSuite) TestListStationsWithinBBox() {
 			lat = util.RandomFloat(float32(yMax), float32(yMax+1.0))
 		}
 		p := geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{float64(lon), float64(lat)}).SetSRID(4326)
-		createRandomStation(t, util.Point{Point: p})
+		createRandomStation(t, types.Point{Point: p})
 	}
 
 	arg := ListStationsWithinBBoxParams{
@@ -228,7 +229,7 @@ func (ts *StationTestSuite) TestCountStationsWithinRadius() {
 			})
 		}
 		p := geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{float64(lon), float64(lat)}).SetSRID(4326)
-		createRandomStation(t, util.Point{Point: p})
+		createRandomStation(t, types.Point{Point: p})
 	}
 	arg := CountStationsWithinRadiusParams{
 		Cx: cLon,
@@ -254,7 +255,7 @@ func (ts *StationTestSuite) TestCountStationsWithinBBox() {
 			lat = util.RandomFloat(float32(yMax), float32(yMax+1.0))
 		}
 		p := geom.NewPoint(geom.XY).MustSetCoords(geom.Coord{float64(lon), float64(lat)}).SetSRID(4326)
-		createRandomStation(t, util.Point{Point: p})
+		createRandomStation(t, types.Point{Point: p})
 	}
 
 	arg := CountStationsWithinBBoxParams{
@@ -413,7 +414,7 @@ func createRandomStation(t *testing.T, geom any) ObservationsStation {
 				Valid:   true,
 			}
 		}
-	case util.Point:
+	case types.Point:
 		arg.Lon = pgtype.Float4{
 			Float32: float32(g.X()),
 			Valid:   true,

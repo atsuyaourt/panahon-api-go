@@ -52,7 +52,7 @@ func (h *DefaultHandler) CreateStationObservation(ctx *gin.Context) {
 		return
 	}
 
-	res := models.NewStationObservation(obs)
+	res := models.NewStationObservation(obs, nil)
 	ctx.JSON(http.StatusCreated, res)
 }
 
@@ -77,6 +77,7 @@ type paginatedStationObservations = util.PaginatedList[models.StationObservation
 //	@Produce	json
 //	@Param		station_id	path		int					true	"Station ID"
 //	@Param		req			query		listStationObsReq	false	"List station observations parameters"
+//	@Security APITokenAuth
 //	@Success	200			{object}	paginatedStationObservations
 //	@Router		/stations/{station_id}/observations [get]
 func (h *DefaultHandler) ListStationObservations(ctx *gin.Context) {
@@ -149,7 +150,7 @@ func (h *DefaultHandler) ListStationObservations(ctx *gin.Context) {
 	numObs := len(obsSlice)
 	items := make([]models.StationObservation, numObs)
 	for i, obs := range obsSlice {
-		items[i] = models.NewStationObservation(obs)
+		items[i] = models.NewStationObservation(obs, getAccessibleVariables(ctx))
 	}
 
 	var count int64
@@ -221,7 +222,7 @@ func (h *DefaultHandler) GetStationObservation(ctx *gin.Context) {
 		return
 	}
 
-	res := models.NewStationObservation(obs)
+	res := models.NewStationObservation(obs, nil)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -268,7 +269,7 @@ func (h *DefaultHandler) UpdateStationObservation(ctx *gin.Context) {
 		return
 	}
 
-	res := models.NewStationObservation(obs)
+	res := models.NewStationObservation(obs, nil)
 	ctx.JSON(http.StatusOK, res)
 }
 
@@ -389,7 +390,7 @@ func (h *DefaultHandler) ListObservations(ctx *gin.Context) {
 	numObs := len(obs)
 	items := make([]models.StationObservation, numObs)
 	for i, observation := range obs {
-		items[i] = models.NewStationObservation(observation)
+		items[i] = models.NewStationObservation(observation, nil)
 	}
 
 	count, err := h.store.CountObservations(ctx, db.CountObservationsParams{

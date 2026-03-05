@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/emiliogozo/panahon-api-go/internal/types"
 	"github.com/emiliogozo/panahon-api-go/internal/util"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
@@ -67,13 +68,13 @@ func (ts *CurrentObservationTestSuite) TestGetNearestLatestStationObservation() 
 	for i := 0; i < n; i++ {
 		if i == int(stnIdx) {
 			p := geom.NewPoint(geom.XY).SetSRID(4326).MustSetCoords(geom.Coord{float64(lon), float64(lat)})
-			station = createRandomStation(t, util.Point{Point: p})
+			station = createRandomStation(t, types.Point{Point: p})
 			continue
 		}
 		farLon := lon + util.RandomFloat[float32](1, 2)
 		farLat := lat + util.RandomFloat[float32](1, 2)
 		p := geom.NewPoint(geom.XY).SetSRID(4326).MustSetCoords(geom.Coord{float64(farLon), float64(farLat)})
-		createRandomStation(t, util.Point{Point: p})
+		createRandomStation(t, types.Point{Point: p})
 	}
 	obs := createRandomObservation(t, station.ID)
 

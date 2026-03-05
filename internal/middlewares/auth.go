@@ -12,30 +12,27 @@ import (
 )
 
 func getAuthKey(tokenMaker token.Maker, ctx *gin.Context) (payload *token.Payload, err error) {
+	// Try cookie first
 	accessToken, err := ctx.Cookie(models.AccessTokenCookieName)
-	if err != nil {
-		authHeader := ctx.GetHeader(models.AuthHeaderKey)
-		if len(authHeader) == 0 {
-			err = errors.New("authorization header is not provided")
-			return
-		}
-
-		fields := strings.Fields(authHeader)
-		if len(fields) < 2 {
-			err = errors.New("invalid authorization header format")
-			return
-		}
-
-		authType := strings.ToLower(fields[0])
-		if authType != models.AuthTypeBearer {
-			err = fmt.Errorf("unsupported authorization authorization type %s", authType)
-			return
-		}
-
-		accessToken = fields[1]
+	if err == nil && accessToken != "" {
+		payload, err = tokenMaker.VerifyToken(accessToken)
+		return
 	}
 
-	payload, err = tokenMaker.VerifyToken(accessToken)
+	// Try Authorization header (Bearer token)
+	authHeader := ctx.GetHeader(models.AuthHeaderKey)
+	if authHeader != "" {
+		fields := strings.Fields(authHeader)
+		if len(fields) >= 2 {
+			authType := strings.ToLower(fields[0])
+			if authType == "bearer" {
+				payload, err = tokenMaker.VerifyToken(fields[1])
+				return
+			}
+		}
+	}
+
+	err = errors.New("no supported authorization scheme provided")
 	return
 }
 

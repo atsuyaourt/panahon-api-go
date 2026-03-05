@@ -1,18 +1,29 @@
 package middlewares
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	db "github.com/emiliogozo/panahon-api-go/internal/db/sqlc"
+	mockdb "github.com/emiliogozo/panahon-api-go/internal/mocks/db"
 	mocktoken "github.com/emiliogozo/panahon-api-go/internal/mocks/token"
 	"github.com/emiliogozo/panahon-api-go/internal/models"
 	"github.com/emiliogozo/panahon-api-go/internal/token"
 	"github.com/emiliogozo/panahon-api-go/internal/util"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	AuthTypeBearer = "bearer"
+	AuthTypeCookie = "cookie"
+	AuthTypeQuery  = "query"
 )
 
 func TestAuthMiddleware(t *testing.T) {
@@ -26,9 +37,9 @@ func TestAuthMiddleware(t *testing.T) {
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "OK",
+			name: "AuthorizationBearer",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				tokenMaker.EXPECT().VerifyToken(mock.Anything).Return(&payload, nil)
@@ -40,7 +51,7 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "AuthorizationCookie",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeCookie, tokenStr)
+				addAuthorization(request, AuthTypeCookie, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				tokenMaker.EXPECT().VerifyToken(mock.Anything).Return(&payload, nil)
@@ -60,7 +71,7 @@ func TestAuthMiddleware(t *testing.T) {
 		{
 			name: "UnsupportedAuthorization",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, "unsupported", "")
+				addAuthorization(request, "unsupported", "")
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -68,9 +79,9 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "InvalidAuthorizationFormat",
+			name: "InvalidAuthBearerFormat",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				authorizationHeader := fmt.Sprintf("%s%s", models.AuthTypeBearer, util.RandomString(12))
+				authorizationHeader := fmt.Sprintf("%s%s", AuthTypeBearer, util.RandomString(12))
 				request.Header.Set(models.AuthHeaderKey, authorizationHeader)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {},
@@ -79,9 +90,9 @@ func TestAuthMiddleware(t *testing.T) {
 			},
 		},
 		{
-			name: "ExpiredToken",
+			name: "ExpiredBearerToken",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				tokenMaker.EXPECT().VerifyToken(mock.Anything).Return(nil, token.ErrExpiredToken)
@@ -116,6 +127,7 @@ func TestAuthMiddleware(t *testing.T) {
 
 			tc.setupAuth(t, request)
 			router.ServeHTTP(recorder, request)
+			time.Sleep(100 * time.Millisecond)
 			tc.checkResponse(t, recorder)
 		})
 	}
@@ -134,7 +146,7 @@ func TestRoleMiddleware(t *testing.T) {
 			name: "OK",
 			role: "USER",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				payload := token.Payload{User: token.User{Roles: []string{"USER", "VIEWER"}}}
@@ -148,7 +160,7 @@ func TestRoleMiddleware(t *testing.T) {
 			name: "MissingRole",
 			role: string(models.AdminRole),
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				payload := token.Payload{User: token.User{Roles: []string{}}}
@@ -201,7 +213,7 @@ func TestAdminMiddleware(t *testing.T) {
 		{
 			name: "IsAdmin",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				payload := token.Payload{User: token.User{Roles: []string{string(models.AdminRole)}}}
@@ -214,7 +226,7 @@ func TestAdminMiddleware(t *testing.T) {
 		{
 			name: "IsSuperAdmin",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				payload := token.Payload{User: token.User{Roles: []string{string(models.SuperAdminRole)}}}
@@ -227,7 +239,7 @@ func TestAdminMiddleware(t *testing.T) {
 		{
 			name: "NotAdmin",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				payload := token.Payload{User: token.User{Roles: []string{"USER", "VIEWER"}}}
@@ -240,7 +252,7 @@ func TestAdminMiddleware(t *testing.T) {
 		{
 			name: "NoRoles",
 			setupAuth: func(t *testing.T, request *http.Request) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(tokenMaker *mocktoken.MockMaker) {
 				payload := token.Payload{User: token.User{Roles: []string{}}}
@@ -283,17 +295,74 @@ func TestAdminMiddleware(t *testing.T) {
 	}
 }
 
+func TestValidateAPIToken(t *testing.T) {
+	testCases := []struct {
+		name          string
+		apiToken      util.APIToken
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, token *db.APIToken, err error)
+	}{
+		{
+			name:     "OK",
+			apiToken: *util.NewAPIToken(""),
+			buildStubs: func(store *mockdb.MockStore) {
+				dbTok := db.APIToken{
+					ID: util.RandomInt[int64](1, 1000),
+					ExpiresAt: pgtype.Timestamptz{
+						Time: time.Now().Add(60 * time.Minute),
+					},
+				}
+				store.EXPECT().GetAPITokenByHash(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("string")).
+					Return(dbTok, nil)
+				store.EXPECT().UpdateAPITokenLastUsedAt(mock.AnythingOfType("context.backgroundCtx"), dbTok.ID).Return(nil)
+			},
+			checkResponse: func(t *testing.T, token *db.APIToken, err error) {
+				require.NoError(t, err)
+				require.NotNil(t, token)
+			},
+		},
+		{
+			name:     "TokenNotFound",
+			apiToken: *util.NewAPIToken(util.RandomString(24)),
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetAPITokenByHash(mock.AnythingOfType("context.backgroundCtx"), mock.AnythingOfType("string")).
+					Return(db.APIToken{}, db.ErrRecordNotFound)
+			},
+			checkResponse: func(t *testing.T, token *db.APIToken, err error) {
+				require.Error(t, err)
+				require.Nil(t, token)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			store := mockdb.NewMockStore(t)
+
+			tc.buildStubs(store)
+
+			tok, err := validateAPIToken(context.Background(), store, tc.apiToken)
+
+			time.Sleep(100 * time.Millisecond)
+			tc.checkResponse(t, tok, err)
+		})
+	}
+}
+
 func addAuthorization(
-	t *testing.T,
 	request *http.Request,
 	authType string,
 	token string,
 ) {
-	if authType == models.AuthTypeBearer {
+	if authType == AuthTypeBearer {
 		authorizationHeader := fmt.Sprintf("%s %s", authType, token)
 		request.Header.Set(models.AuthHeaderKey, authorizationHeader)
-	} else if authType == models.AuthTypeCookie {
+	} else if authType == AuthTypeCookie {
 		addAccessTokenCookie(request, token)
+	} else if authType == AuthTypeQuery {
+		request.URL.RawQuery = fmt.Sprintf("%s=%s", models.APIKeyQueryParam, token)
 	}
 }
 

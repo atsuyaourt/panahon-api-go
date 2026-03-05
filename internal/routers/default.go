@@ -1,6 +1,7 @@
 package routers
 
 import (
+	db "github.com/emiliogozo/panahon-api-go/internal/db/sqlc"
 	"github.com/emiliogozo/panahon-api-go/internal/handlers"
 	mw "github.com/emiliogozo/panahon-api-go/internal/middlewares"
 	"github.com/emiliogozo/panahon-api-go/internal/token"
@@ -15,10 +16,11 @@ import (
 type DefaultRouter struct {
 	handler    *handlers.DefaultHandler
 	tokenMaker token.Maker
+	store      db.Store
 	*gin.Engine
 }
 
-func NewDefaultRouter(config util.Config, handler *handlers.DefaultHandler, tokenMaker token.Maker, logger *zerolog.Logger) *DefaultRouter {
+func NewDefaultRouter(config util.Config, handler *handlers.DefaultHandler, tokenMaker token.Maker, store db.Store, logger *zerolog.Logger) *DefaultRouter {
 	gin.SetMode(config.GinMode)
 	g := gin.New()
 	g.Use(mw.Zerologger(logger), gin.Recovery())
@@ -35,6 +37,7 @@ func NewDefaultRouter(config util.Config, handler *handlers.DefaultHandler, toke
 	r := DefaultRouter{
 		handler:    handler,
 		tokenMaker: tokenMaker,
+		store:      store,
 		Engine:     g,
 	}
 

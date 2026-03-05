@@ -28,7 +28,7 @@ func NewServer(config util.Config, store db.Store, tokenMaker token.Maker, logge
 
 	handler := handlers.NewDefaultHandler(config, store, tokenMaker, logger)
 
-	server.router = routers.NewDefaultRouter(config, handler, tokenMaker, logger)
+	server.router = routers.NewDefaultRouter(config, handler, tokenMaker, store, logger)
 
 	return server, nil
 }

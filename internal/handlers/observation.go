@@ -14,7 +14,7 @@ type observationRes struct {
 func newObservationResponse(stn db.ObservationsStation, obs db.ObservationsObservation, h db.ObservationsStationhealth) observationRes {
 	return observationRes{
 		Station: models.NewStation(stn, false),
-		Obs:     models.NewStationObservation(obs),
+		Obs:     models.NewStationObservation(obs, nil),
 		Health:  newStationHealth(h),
 	}
 }

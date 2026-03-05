@@ -1,6 +1,7 @@
 package models
 
 import (
+	"slices"
 	"time"
 
 	db "github.com/emiliogozo/panahon-api-go/internal/db/sqlc"
@@ -9,18 +10,18 @@ import (
 )
 
 type BaseStationObs struct {
-	Pres      *float32  `json:"pres" fake:"{float32range:990,1100}"`
-	Rr        *float32  `json:"rr"`
-	Rh        *float32  `json:"rh"`
-	Temp      *float32  `json:"temp" fake:"{float32range:25,35}"`
-	Td        *float32  `json:"td"`
-	Wdir      *float32  `json:"wdir"`
-	Wspd      *float32  `json:"wspd"`
-	Wspdx     *float32  `json:"wspdx"`
-	Srad      *float32  `json:"srad"`
-	Mslp      *float32  `json:"mslp"`
-	Hi        *float32  `json:"hi"`
-	Wchill    *float32  `json:"wchill"`
+	Pres      *float32  `json:"pres,omitempty" fake:"{float32range:990,1100}"`
+	Rr        *float32  `json:"rr,omitempty"`
+	Rh        *float32  `json:"rh,omitempty"`
+	Temp      *float32  `json:"temp,omitempty" fake:"{float32range:25,35}"`
+	Td        *float32  `json:"td,omitempty"`
+	Wdir      *float32  `json:"wdir,omitempty"`
+	Wspd      *float32  `json:"wspd,omitempty"`
+	Wspdx     *float32  `json:"wspdx,omitempty"`
+	Srad      *float32  `json:"srad,omitempty"`
+	Mslp      *float32  `json:"mslp,omitempty"`
+	Hi        *float32  `json:"hi,omitempty"`
+	Wchill    *float32  `json:"wchill,omitempty"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -31,50 +32,36 @@ type StationObservation struct {
 	BaseStationObs
 } //@name StationObservation
 
+func shouldInclude(varNames []string, varName string) bool {
+	return varNames == nil || slices.Contains(varNames, varName)
+}
+
+func setFloat32(dest **float32, src pgtype.Float4, varNames []string, varName string) {
+	if src.Valid && shouldInclude(varNames, varName) {
+		*dest = &src.Float32
+	}
+}
+
 // NewStationObservation creates new StationObservation from db.ObservationsObservation
-func NewStationObservation(obs db.ObservationsObservation) StationObservation {
+func NewStationObservation(obs db.ObservationsObservation, varNames []string) StationObservation {
 	res := StationObservation{
 		ID:        obs.ID,
 		StationID: obs.StationID,
 		QcLevel:   obs.QcLevel,
 	}
 
-	if obs.Pres.Valid {
-		res.Pres = &obs.Pres.Float32
-	}
-	if obs.Rr.Valid {
-		res.Rr = &obs.Rr.Float32
-	}
-	if obs.Rh.Valid {
-		res.Rh = &obs.Rh.Float32
-	}
-	if obs.Temp.Valid {
-		res.Temp = &obs.Temp.Float32
-	}
-	if obs.Td.Valid {
-		res.Td = &obs.Td.Float32
-	}
-	if obs.Wdir.Valid {
-		res.Wdir = &obs.Wdir.Float32
-	}
-	if obs.Wspd.Valid {
-		res.Wspd = &obs.Wspd.Float32
-	}
-	if obs.Wspdx.Valid {
-		res.Wspdx = &obs.Wspdx.Float32
-	}
-	if obs.Srad.Valid {
-		res.Srad = &obs.Srad.Float32
-	}
-	if obs.Mslp.Valid {
-		res.Mslp = &obs.Mslp.Float32
-	}
-	if obs.Hi.Valid {
-		res.Hi = &obs.Hi.Float32
-	}
-	if obs.Wchill.Valid {
-		res.Wchill = &obs.Wchill.Float32
-	}
+	setFloat32(&res.Pres, obs.Pres, varNames, "pres")
+	setFloat32(&res.Rr, obs.Rr, varNames, "rain")
+	setFloat32(&res.Rh, obs.Rh, varNames, "rh")
+	setFloat32(&res.Temp, obs.Temp, varNames, "temp")
+	setFloat32(&res.Td, obs.Td, varNames, "td")
+	setFloat32(&res.Wdir, obs.Wdir, varNames, "wind")
+	setFloat32(&res.Wspd, obs.Wspd, varNames, "wind")
+	setFloat32(&res.Wspdx, obs.Wspdx, varNames, "windx")
+	setFloat32(&res.Srad, obs.Srad, varNames, "srad")
+	setFloat32(&res.Mslp, obs.Mslp, varNames, "pres")
+	setFloat32(&res.Hi, obs.Hi, varNames, "hi")
+	setFloat32(&res.Wchill, obs.Wchill, varNames, "wchill")
 
 	if obs.Timestamp.Valid {
 		res.Timestamp = obs.Timestamp.Time

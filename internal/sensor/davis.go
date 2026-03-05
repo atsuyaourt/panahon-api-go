@@ -137,7 +137,7 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 	req.Header.Set("User-Agent", HTTPUserAgent)
 
 	if d.apiCredentials.Type == "v2" {
-		req.Header.Set("X-Api-Secret", d.apiCredentials.APISecret)
+		req.Header.Set("X-API-Secret", d.apiCredentials.APISecret)
 	}
 
 	time.Sleep(d.sleep)
@@ -176,7 +176,7 @@ func (d Davis) FetchLatest() ([]DavisCurrentObservation, error) {
 			}
 
 			req.Header.Set("User-Agent", HTTPUserAgent)
-			req.Header.Set("X-Api-Secret", d.apiCredentials.APISecret)
+			req.Header.Set("X-API-Secret", d.apiCredentials.APISecret)
 
 			time.Sleep(d.sleep)
 

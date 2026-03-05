@@ -5,10 +5,23 @@
 package db
 
 import (
-	"github.com/emiliogozo/panahon-api-go/internal/util"
+	"github.com/emiliogozo/panahon-api-go/internal/types"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type APIToken struct {
+	ID          int64              `json:"id"`
+	UserID      int64              `json:"user_id"`
+	Name        string             `json:"name"`
+	TokenHash   string             `json:"token_hash"`
+	TokenPrefix string             `json:"token_prefix"`
+	Permissions []byte             `json:"permissions"`
+	LastUsedAt  pgtype.Timestamptz `json:"last_used_at"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
 
 type GlabsLoad struct {
 	ID            int64              `json:"id"`
@@ -126,7 +139,7 @@ type ObservationsStation struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
-	Geom          util.Point         `json:"geom"`
+	Geom          types.Point        `json:"geom"`
 }
 
 type ObservationsStationhealth struct {

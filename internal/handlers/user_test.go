@@ -28,7 +28,7 @@ import (
 func TestListUsersAPI(t *testing.T) {
 	n := 10
 	users := make([]db.User, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		users[i], _, _ = randomUser(t)
 	}
 
@@ -1155,14 +1155,14 @@ func TestGetAuthUserAPI(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		setupAuth     func(request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore, tokenMaker *mocktoken.MockMaker)
 		checkResponse func(recoder *httptest.ResponseRecorder, store *mockdb.MockStore)
 	}{
 		{
 			name: "OK",
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+			setupAuth: func(request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(store *mockdb.MockStore, tokenMaker *mocktoken.MockMaker) {
 				tokenMaker.EXPECT().VerifyToken(mock.AnythingOfType("string")).Return(&token.Payload{User: authUser}, nil)
@@ -1176,8 +1176,8 @@ func TestGetAuthUserAPI(t *testing.T) {
 		},
 		{
 			name: "InternalError",
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorization(t, request, models.AuthTypeBearer, tokenStr)
+			setupAuth: func(request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(request, AuthTypeBearer, tokenStr)
 			},
 			buildStubs: func(store *mockdb.MockStore, tokenMaker *mocktoken.MockMaker) {
 				tokenMaker.EXPECT().VerifyToken(mock.AnythingOfType("string")).Return(&token.Payload{User: authUser}, nil)
@@ -1214,7 +1214,7 @@ func TestGetAuthUserAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			tc.setupAuth(t, request, handler.tokenMaker)
+			tc.setupAuth(request, handler.tokenMaker)
 			router.ServeHTTP(recorder, request)
 			tc.checkResponse(recorder, store)
 		})
@@ -1278,19 +1278,5 @@ func requireBodyMatchUsers(t *testing.T, body *bytes.Buffer, users []db.User) {
 		require.Equal(t, user.Username, gotUsers.Items[i].Username)
 		require.Equal(t, user.FullName, gotUsers.Items[i].FullName)
 		require.Equal(t, user.Email, gotUsers.Items[i].Email)
-	}
-}
-
-func addAuthorization(
-	t *testing.T,
-	request *http.Request,
-	authType string,
-	token string,
-) {
-	if authType == models.AuthTypeBearer {
-		authorizationHeader := fmt.Sprintf("%s %s", authType, token)
-		request.Header.Set(models.AuthHeaderKey, authorizationHeader)
-	} else if authType == models.AuthTypeCookie {
-		addAccessTokenCookie(request, token)
 	}
 }
