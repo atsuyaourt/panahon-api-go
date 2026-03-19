@@ -191,10 +191,8 @@ func NewLufftFromString(valStr string) (l *Lufft, err error) {
 		minutesDiff = timeNow.Sub(timestamp).Minutes()
 		if minutesDiff < minMinutesThresh {
 			errMsg = fmt.Sprintf("timestamp is %f minutes behind", math.Abs(minutesDiff))
-			timestamp = timeNow
 		} else if minutesDiff > maxMinutesThresh {
 			errMsg = fmt.Sprintf("timestamp is %f minutes ahead", minutesDiff)
-			timestamp = timeNow
 		}
 	}
 
