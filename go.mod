@@ -1,6 +1,6 @@
 module github.com/emiliogozo/panahon-api-go
 
-go 1.24.2
+go 1.26
 
 require (
 	aidanwoods.dev/go-paseto v1.5.4
