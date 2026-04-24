@@ -4,6 +4,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -a -o server ./cmd/server/
 
 FROM alpine:3.23
+RUN apk add --no-cache tzdata
 WORKDIR /app
 COPY --from=builder /app/server .
 COPY app.env .
