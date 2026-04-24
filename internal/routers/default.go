@@ -46,7 +46,7 @@ func NewDefaultRouter(config util.Config, handler *handlers.DefaultHandler, toke
 	r.stationRouter(api)
 	r.observationRouter(api)
 	r.glabsRouter(api)
-	r.ptexterRouter(api)
+	r.smsRouter(api)
 	r.lufftRouter(api)
 	r.csiRouter(api)
 

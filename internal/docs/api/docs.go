@@ -247,39 +247,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/ptexter": {
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "promotexter"
-                ],
-                "summary": "Store Lufft observation and health",
-                "parameters": [
-                    {
-                        "description": "Promo Texter parameters",
-                        "name": "req",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/LufftSMSParams"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/ObservationResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/roles": {
             "get": {
                 "security": [
@@ -464,6 +431,39 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/sms": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sms"
+                ],
+                "summary": "Store Lufft observation and health",
+                "parameters": [
+                    {
+                        "description": "SMS parameters",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/LufftSMSParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/ObservationResponse"
+                        }
                     }
                 }
             }
@@ -699,6 +699,11 @@ const docTemplate = `{
         },
         "/stations/{station_id}/observations": {
             "get": {
+                "security": [
+                    {
+                        "APITokenAuth": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],

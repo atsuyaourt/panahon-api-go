@@ -12,25 +12,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type pTexterStoreLufftReq struct {
+type smsStoreLufftReq struct {
 	Number string `json:"number" binding:"required"`
 	Msg    string `json:"msg" binding:"required"`
 } //@name LufftSMSParams
 
-// PromoTexterStoreLufft
+// SMSStoreLufft
 //
 //	@Summary	Store Lufft observation and health
-//	@Tags		promotexter
+//	@Tags		sms
 //	@Accept		json
 //	@Produce	json
-//	@Param		req	body		pTexterStoreLufftReq	true	"Promo Texter parameters"
+//	@Param		req	body		smsStoreLufftReq	true	"SMS parameters"
 //	@Success	200	{object}	observationRes
-//	@Router		/ptexter [post]
-func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
-	var req pTexterStoreLufftReq
+//	@Router		/sms [post]
+func (h *DefaultHandler) SMSStoreLufft(ctx *gin.Context) {
+	var req smsStoreLufftReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		h.logger.Error().Err(err).
-			Msg("[PromoTexter] Bad request")
+			Msg("[SMSStoreLufft] Bad request")
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -40,7 +40,7 @@ func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
 		h.logger.Error().Err(err).
 			Str("sender", req.Number).
 			Str("msg", req.Msg).
-			Msg("[PromoTexter] Invalid string")
+			Msg("[SMSStoreLufft] Invalid string")
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -51,7 +51,7 @@ func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
 		h.logger.Error().Err(err).
 			Str("sender", req.Number).
 			Str("msg", req.Msg).
-			Msg("[PromoTexter] Invalid mobile number")
+			Msg("[SMSStoreLufft] Invalid mobile number")
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
@@ -65,14 +65,14 @@ func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
 			h.logger.Error().Err(err).
 				Str("sender", req.Number).
 				Str("msg", req.Msg).
-				Msg("[PromoTexter] No station found")
+				Msg("[SMSStoreLufft] No station found")
 			ctx.JSON(http.StatusNotFound, errorResponse(errors.New("station not found")))
 			return
 		}
 		h.logger.Error().Err(err).
 			Str("sender", req.Number).
 			Str("msg", req.Msg).
-			Msg("[PromoTexter] AN error occured")
+			Msg("[SMSStoreLufft] An error occured")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -102,7 +102,7 @@ func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
 		h.logger.Error().Err(err).
 			Str("sender", req.Number).
 			Str("msg", req.Msg).
-			Msg("[PromoTexter] Cannot store station observation")
+			Msg("[SMSStoreLufft] Cannot store station observation")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -135,7 +135,7 @@ func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
 		h.logger.Error().Err(err).
 			Str("sender", req.Number).
 			Str("msg", req.Msg).
-			Msg("[PromoTexter] Cannot store station status")
+			Msg("[SMSStoreLufft] Cannot store station status")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	}
 
@@ -144,6 +144,6 @@ func (h *DefaultHandler) PromoTexterStoreLufft(ctx *gin.Context) {
 	h.logger.Debug().
 		Str("sender", req.Number).
 		Str("msg", req.Msg).
-		Msg("[PromoTexter] Data saved successfully")
+		Msg("[SMSStoreLufft] Data saved successfully")
 	ctx.JSON(http.StatusCreated, res)
 }

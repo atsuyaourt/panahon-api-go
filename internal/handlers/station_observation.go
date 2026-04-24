@@ -75,10 +75,10 @@ type paginatedStationObservations = util.PaginatedList[models.StationObservation
 //	@Tags		observations
 //	@Accept		json
 //	@Produce	json
-//	@Param		station_id	path		int					true	"Station ID"
-//	@Param		req			query		listStationObsReq	false	"List station observations parameters"
-//	@Security APITokenAuth
-//	@Success	200			{object}	paginatedStationObservations
+//	@Param		station_id	path	int					true	"Station ID"
+//	@Param		req			query	listStationObsReq	false	"List station observations parameters"
+//	@Security	APITokenAuth
+//	@Success	200	{object}	paginatedStationObservations
 //	@Router		/stations/{station_id}/observations [get]
 func (h *DefaultHandler) ListStationObservations(ctx *gin.Context) {
 	var uri listStationObsUri

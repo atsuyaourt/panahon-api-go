@@ -677,27 +677,6 @@ paths:
       summary: list latest observation
       tags:
       - observations
-  /ptexter:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Promo Texter parameters
-        in: body
-        name: req
-        required: true
-        schema:
-          $ref: '#/definitions/LufftSMSParams'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/ObservationResponse'
-      summary: Store Lufft observation and health
-      tags:
-      - promotexter
   /roles:
     get:
       consumes:
@@ -814,6 +793,27 @@ paths:
       summary: Update role
       tags:
       - roles
+  /sms:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: SMS parameters
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/LufftSMSParams'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ObservationResponse'
+      summary: Store Lufft observation and health
+      tags:
+      - sms
   /stations:
     get:
       consumes:
@@ -971,6 +971,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/PaginatedStationObservations'
+      security:
+      - APITokenAuth: []
       summary: List station observations
       tags:
       - observations

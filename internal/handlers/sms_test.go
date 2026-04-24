@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPromoTexterStoreLufft(t *testing.T) {
+func TestSMSStoreLufft(t *testing.T) {
 	mobileNum := gofakeit.Regex("639[0-9]{9}")
 	var lufft sensor.Lufft
 	gofakeit.Struct(&lufft)
@@ -89,7 +89,7 @@ func TestPromoTexterStoreLufft(t *testing.T) {
 			handler := newTestHandler(store, nil)
 
 			router := gin.Default()
-			router.POST("", handler.PromoTexterStoreLufft)
+			router.POST("", handler.SMSStoreLufft)
 
 			recorder := httptest.NewRecorder()
 

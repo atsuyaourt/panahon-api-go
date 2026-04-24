@@ -183,17 +183,21 @@ func NewLufftFromString(valStr string) (l *Lufft, err error) {
 	}
 
 	timeNow := time.Now()
-	timestamp := parseTimestampTz(valStrs[nVal-2], "Asia/Manila")
 	errMsg := ""
 	minutesDiff := 0.0
 
-	if !timestamp.IsZero() {
-		minutesDiff = timeNow.Sub(timestamp).Minutes()
-		if minutesDiff < minMinutesThresh {
-			errMsg = fmt.Sprintf("timestamp is %f minutes behind", math.Abs(minutesDiff))
-		} else if minutesDiff > maxMinutesThresh {
-			errMsg = fmt.Sprintf("timestamp is %f minutes ahead", minutesDiff)
-		}
+	dateStr := valStrs[nVal-2]
+	timestamp := parseTimestampTz(dateStr, "Asia/Manila")
+	if timestamp.IsZero() {
+		errMsg = fmt.Sprintf("timestamp is invalid: %s", dateStr)
+		timestamp = timeNow
+	}
+
+	minutesDiff = timeNow.Sub(timestamp).Minutes()
+	if minutesDiff < minMinutesThresh {
+		errMsg = fmt.Sprintf("timestamp is %f minutes behind", math.Abs(minutesDiff))
+	} else if minutesDiff > maxMinutesThresh {
+		errMsg = fmt.Sprintf("timestamp is %f minutes ahead", minutesDiff)
 	}
 
 	if nVal == 20 || nVal == 24 {
